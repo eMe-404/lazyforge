@@ -1,0 +1,6 @@
+font-family = JetBrainsMono Nerd Font
+font-size = 20
+theme = Catppuccin Mocha
+shell-integration = zsh
+macos-option-as-alt = true
+keybind = cmd+grave_accent=toggle_quick_terminal
