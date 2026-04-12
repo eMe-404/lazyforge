@@ -1,0 +1,346 @@
+% shell, navigation
+
+# [z] Jump to a frecent directory
+z <directory>
+
+# [z] Show zoxide scored history
+zoxide query --list --score
+
+# [Ctrl+T] Open fzf file picker
+fzf
+
+# [fif] Fuzzy search file contents with bat preview
+rg --files --hidden --glob '!.git' | fzf --preview "bat --color=always {}"
+
+# [Ctrl+R] Search shell history interactively
+atuin search
+
+# [Ctrl+R] Search history for a specific term
+atuin search <term>
+
+$ directory: zoxide query --list | awk '{print $2}'
+
+
+% files, eza, bat
+
+# [ll] List files with icons and git status
+eza -la --icons --git
+
+# [ll] List as a tree (N levels deep)
+eza --tree --level <depth> --icons
+
+# [cat] Preview a file with syntax highlighting
+bat <file>
+
+# [cat] Preview a file forcing a specific language
+bat --language <lang> <file>
+
+# [cat] Preview a line range of a file
+bat -r <start>:<end> <file>
+
+# [cat] Show all languages bat supports
+bat --list-languages
+
+$ depth: echo -e "2\n3\n4\n5"
+$ lang: bat --list-languages | awk -F: '{print $1}'
+
+
+% search, ripgrep, fd
+
+# [rg] Search for a pattern in files
+rg <pattern>
+
+# [rg] Search in a specific file type only
+rg <pattern> --type <filetype>
+
+# [rg] Search with N lines of context
+rg -C <lines> <pattern>
+
+# [rg] List only files that contain the pattern
+rg -l <pattern>
+
+# [rg] Case-insensitive search
+rg -i <pattern>
+
+# [fd] Find files by name
+fd <filename>
+
+# [fd] Find files by extension
+fd --extension <ext>
+
+# [fd] Find directories only
+fd --type d <name>
+
+# [bat] Show all file types bat supports
+bat --list-languages
+
+$ filetype: echo -e "js\nts\npy\ngo\nrust\njava\nmd\njson\nyaml\nlua"
+$ lines: echo -e "2\n5\n10"
+
+
+% git, lazygit, delta, gh, tig
+
+# [lg] Open lazygit TUI (full git workflow)
+lazygit
+
+# [tig] Browse git log read-only
+tig
+
+# [delta] View git diff with syntax highlighting
+git diff
+
+# [delta] View staged diff
+git diff --staged
+
+# [gh] List open pull requests
+gh pr list
+
+# [gh] Create a new PR interactively
+gh pr create
+
+# [gh] View current PR in browser
+gh pr view --web
+
+# [gh] Check CI run status
+gh run list
+
+# [gh] Watch a CI run live
+gh run watch
+
+# [gh] View open issues
+gh issue list
+
+# [gh] Clone a repo
+gh repo clone <repo>
+
+# [gh] Create a new GitHub repo
+gh repo create <name> --public
+
+$ repo: gh repo list --limit 20 --json nameWithOwner --jq '.[].nameWithOwner'
+
+
+% json, yaml, data, jq, yq, fx
+
+# [jq] Pretty-print JSON file
+jq '.' <file>
+
+# [jq] Extract a top-level field
+jq '.<field>' <file>
+
+# [jq] Extract nested field
+jq '.data.<field>' <file>
+
+# [jq] Filter array elements by field value
+jq '.[] | select(.<field> == "<value>")' <file>
+
+# [jq] Get array length
+jq '.[] | length' <file>
+
+# [jq] Pretty-print JSON from curl
+curl -s <url> | jq '.'
+
+# [fx] Interactively explore a JSON file
+fx <file>
+
+# [fx] Pipe curl response into fx explorer
+curl -s <url> | fx
+
+# [yq] Pretty-print a YAML file
+yq '.' <file>
+
+# [yq] Extract a YAML field
+yq '.<key>' <file>
+
+# [yq] Convert YAML to JSON
+yq -o=json '.' <file>
+
+# [yq] Convert JSON to YAML
+yq -P '.' <file>
+
+
+% http, api, xh
+
+# [xh] Simple GET request
+xh GET <url>
+
+# [xh] POST JSON key-value pairs
+xh POST <url> <key>=<value>
+
+# [xh] POST raw JSON body
+xh POST <url> Content-Type:application/json --raw '<json>'
+
+# [xh] Add Authorization Bearer header
+xh GET <url> Authorization:"Bearer <token>"
+
+# [xh] Download file to disk
+xh GET <url> -o <output>
+
+# [xh] Verbose request showing headers
+xh -v GET <url>
+
+# [xh] Add query params
+xh GET <url> key==<value>
+
+
+% system, monitoring, btop, dust, duf, gping
+
+# [btop] Resource monitor — CPU, RAM, network
+btop
+
+# [dust] Visual disk usage tree
+dust
+
+# [dust] Disk usage for a specific directory
+dust <directory>
+
+# [duf] Disk free — all mount points
+duf
+
+# [gping] Ping with live graph
+gping <host>
+
+# [gping] Ping multiple hosts side by side
+gping <host1> <host2>
+
+$ host: echo -e "google.com\n1.1.1.1\n8.8.8.8"
+$ host1: echo -e "google.com\n1.1.1.1"
+$ host2: echo -e "cloudflare.com\n8.8.8.8"
+
+
+% docker, lazydocker
+
+# [ld] Open lazydocker TUI
+lazydocker
+
+# [docker] View running containers
+docker ps
+
+# [docker] Tail container logs
+docker logs -f <container>
+
+$ container: docker ps --format '{{.Names}}'
+
+
+% files, yazi, broot
+
+# [yazi] Open yazi TUI file manager
+yazi
+
+# [yazi] Open yazi in a specific directory
+yazi <directory>
+
+# [broot] Open broot fuzzy tree navigator
+broot
+
+# [broot] Open broot in a specific directory
+broot <directory>
+
+
+% zellij, multiplexer, sessions
+
+# [zellij] Start a new session
+zellij
+
+# [zellij] Start a named session
+zellij -s <session_name>
+
+# [zellij] List all sessions
+zellij list-sessions
+
+# [zellij] Attach to an existing session
+zellij attach <session_name>
+
+# [zellij] Kill a session
+zellij kill-session <session_name>
+
+# [zellij] Detach — keep session running (Ctrl+o then d)
+# Press: Ctrl+o → d
+
+
+% just, task-runner
+
+# [just] List all available recipes
+just --list
+
+# [just] Run a recipe
+just <recipe>
+
+# [just] Run a recipe with a variable
+just <recipe> <var>=<value>
+
+# [just] Dry-run — show commands without executing
+just --dry-run <recipe>
+
+$ recipe: just --list --unsorted 2>/dev/null | tail -n +2 | awk '{print $1}'
+
+
+% docs, tldr, glow, navi
+
+# [tldr] Look up practical command examples
+tldr <command>
+
+# [tldr] Update local tldr cache
+tldr --update
+
+# [glow] Render a Markdown file in terminal
+glow <file>
+
+# [glow] Browse all Markdown files in current directory
+glow .
+
+# [navi] Open cheatsheet browser
+navi
+
+# [? / cheat] Search navi for a topic
+navi --query <topic>
+
+
+% editor, neovim, lazyvim
+
+# [nv] Open neovim in current directory
+nvim .
+
+# [nv] Open a specific file in neovim
+nvim <file>
+
+# [nv →  Space ff] Find files with Telescope (inside nvim)
+# Inside nvim: press <Space>ff
+
+# [nv →  Space gg] Open lazygit inside nvim
+# Inside nvim: press <Space>gg
+
+# [nv →  Space e] Toggle file tree (inside nvim)
+# Inside nvim: press <Space>e
+
+# [nv →  :Lazy] Open plugin manager UI
+# Inside nvim: :Lazy
+
+# [nv →  :LazyHealth] Run health check
+# Inside nvim: :LazyHealth
+
+
+% claude, ai
+
+# [cc] Start new Claude Code session
+claude
+
+# [ccc] Continue last Claude session
+claude --continue
+
+# [cc] Ask Claude a quick inline question
+claude "<question>"
+
+# [cc] Claude with a file as context
+claude --file <file> "<prompt>"
+
+
+% yaer-forge, forge
+
+# [forge] Run full install on a fresh machine
+./install.sh
+
+# [forge] Install all brew tools from Brewfile
+brew bundle install
+
+# [forge] Search this cheatsheet
+navi --query yaer-forge

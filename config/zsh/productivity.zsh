@@ -40,5 +40,9 @@ alias ccc="claude --continue"
 # --- fzf + bat file finder ---
 alias fif='rg --files-with-matches "" | fzf --preview "bat --color=always {}"'
 
+# --- navi quick access ---
+alias cheat='navi'                           # browse all cheat sheets
+alias '?'='navi --query'                     # ? docker  →  search navi for docker
+
 # --- git delta ---
 export GIT_PAGER="delta"

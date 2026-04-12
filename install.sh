@@ -45,6 +45,15 @@ mkdir -p "$HOME/.config/ghostty"
 ln -sf "$FORGE_DIR/config/ghostty/config" "$HOME/.config/ghostty/config"
 success "Ghostty config linked"
 
+# --- navi config + cheat sheets ---
+info "Linking navi config and cheat sheets..."
+NAVI_CHEATS_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/navi/cheats"
+NAVI_CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/navi"
+mkdir -p "$NAVI_CHEATS_DIR" "$NAVI_CONFIG_DIR"
+ln -sf  "$FORGE_DIR/config/navi/config.yaml" "$NAVI_CONFIG_DIR/config.yaml"
+ln -sfn "$FORGE_DIR/config/navi/cheats"      "$NAVI_CHEATS_DIR/yaer-forge"
+success "navi ready — run 'navi' or '? <topic>' to search"
+
 # --- Neovim / LazyVim config ---
 info "Linking Neovim config..."
 if [ -d "$HOME/.config/nvim" ] && [ ! -L "$HOME/.config/nvim" ]; then

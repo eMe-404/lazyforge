@@ -128,6 +128,8 @@ yaer-forge/
 ├── config/
 │   ├── ghostty/config      # Ghostty terminal config
 │   ├── zsh/productivity.zsh  # shell aliases, tools, prompt
+│   ├── navi/cheats/
+│   │   └── yaer-forge.cheat  # interactive command reference (navi)
 │   └── nvim/               # Neovim / LazyVim config
 │       ├── init.lua
 │       └── lua/

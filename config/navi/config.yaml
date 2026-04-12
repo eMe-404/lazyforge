@@ -1,0 +1,4 @@
+finder:
+  # Reorder fzf columns: default is tags | description | command
+  # 3,2,1 flips it to:          command | description | tags
+  overrides: '--with-nth=3,2,1'
