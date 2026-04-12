@@ -334,30 +334,6 @@ claude "<question>"
 claude --file <file> "<prompt>"
 
 
-% ai, mods, llm
-
-# [ai] Ask an inline question without piping
-mods "<question>"
-
-# [ai] Explain an error log
-cat <file> | mods "what is causing this error"
-
-# [ai] Summarize a git diff in one line
-git diff | mods "summarize these changes in one line"
-
-# [ai] Explain what a config file does
-bat <file> | mods "explain what this configures"
-
-# [ai] Explain a command's output
-<command> | mods "explain this output"
-
-# [ai] Suggest a fix for a failing test
-cat <file> | mods "suggest a fix"
-
-$ file: fd --type f | fzf
-$ command: echo -e "docker ps\ndf -h\ngit log --oneline -10"
-
-
 % git, opencommit, ai-commits
 
 # [gai] Generate AI commit message from staged diff

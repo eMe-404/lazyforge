@@ -61,7 +61,6 @@ brew "fastfetch"     # fast system info (neofetch replacement)
 brew "gping"         # ping with real-time graph
 
 # --- AI & Extras ---
-brew "mods"          # pipe text through an LLM inline
 brew "onefetch"      # git repo summary (like fastfetch for repos)
 brew "tokei"         # fast code stats by language
 brew "viddy"         # modern watch with diff highlighting

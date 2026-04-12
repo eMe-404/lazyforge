@@ -37,9 +37,6 @@ export VISUAL="nvim"
 alias cc="claude"
 alias ccc="claude --continue"
 
-# --- AI inline queries (mods) ---
-alias ai='mods'
-
 # --- Repo info ---
 alias repo='onefetch'
 
