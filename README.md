@@ -116,6 +116,7 @@ fif  → fuzzy file finder with bat preview
 | `Ctrl+T` | fzf file picker with bat preview |
 | `z <name>` | zoxide — jump to any frecent directory |
 | `Cmd+\`` | Ghostty quick terminal toggle |
+| `Cmd+Shift+R` | navi cheatsheet browser |
 
 ---
 
