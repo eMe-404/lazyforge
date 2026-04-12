@@ -334,6 +334,104 @@ claude "<question>"
 claude --file <file> "<prompt>"
 
 
+% ai, mods, llm
+
+# [ai] Ask an inline question without piping
+mods "<question>"
+
+# [ai] Explain an error log
+cat <file> | mods "what is causing this error"
+
+# [ai] Summarize a git diff in one line
+git diff | mods "summarize these changes in one line"
+
+# [ai] Explain what a config file does
+bat <file> | mods "explain what this configures"
+
+# [ai] Explain a command's output
+<command> | mods "explain this output"
+
+# [ai] Suggest a fix for a failing test
+cat <file> | mods "suggest a fix"
+
+$ file: fd --type f | fzf
+$ command: echo -e "docker ps\ndf -h\ngit log --oneline -10"
+
+
+% git, opencommit, ai-commits
+
+# [gai] Generate AI commit message from staged diff
+oco
+
+# [gai] Generate and auto-commit without prompt
+oco --yes
+
+# [gai] Set up oco as a git commit hook
+oco hook set
+
+# [gai] Remove oco git hook
+oco hook unset
+
+
+% repos, onefetch, tokei
+
+# [repo] Show git repo summary (languages, contributors, stats)
+onefetch
+
+# [repo] Repo summary for a specific directory
+onefetch <directory>
+
+# [tokei] Count lines of code by language
+tokei
+
+# [tokei] Stats for a subdirectory
+tokei <directory>
+
+# [tokei] Sort by lines of code
+tokei --sort code
+
+$ directory: fd --type d --max-depth 2 | fzf
+
+
+% system, monitoring, viddy
+
+# [viddy] Watch a command with diff highlighting
+viddy '<command>'
+
+# [viddy] Watch docker container state
+viddy 'docker ps'
+
+# [viddy] Poll CI run status every 2s
+viddy -n 2 'gh run list --limit 5'
+
+# [viddy] Watch kubectl pods
+viddy -d 'kubectl get pods'
+
+$ command: echo -e "docker ps\ndf -h\ngit status"
+
+
+% scripts, gum, interactive
+
+# [gum] Confirm before a destructive action
+gum confirm "<message>"
+
+# [gum] Pick from a list interactively
+gum choose <option1> <option2> <option3>
+
+# [gum] Styled log output in a script
+gum style --foreground 212 "<message>"
+
+# [gum] Spinner around a slow command
+gum spin --spinner dot --title "<title>" -- <command>
+
+# [gum] Prompt for user input
+gum input --placeholder "<hint>"
+
+$ option1: echo -e "yes\nno\nmaybe"
+$ option2: echo -e "a\nb\nc"
+$ option3: echo -e "x\ny\nz"
+
+
 % yaer-forge, forge
 
 # [forge] Run full install on a fresh machine

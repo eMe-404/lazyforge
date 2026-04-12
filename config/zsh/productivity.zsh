@@ -37,6 +37,15 @@ export VISUAL="nvim"
 alias cc="claude"
 alias ccc="claude --continue"
 
+# --- AI inline queries (mods) ---
+alias ai='mods'
+
+# --- Repo info ---
+alias repo='onefetch'
+
+# --- AI commit messages (opencommit) ---
+alias gai='oco'
+
 # --- fzf + bat file finder ---
 alias fif='rg --files-with-matches "" | fzf --preview "bat --color=always {}"'
 

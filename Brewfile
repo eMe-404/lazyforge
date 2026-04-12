@@ -59,3 +59,10 @@ brew "tealdeer"      # fast tldr (practical command examples)
 brew "navi"          # interactive cheatsheet tool
 brew "fastfetch"     # fast system info (neofetch replacement)
 brew "gping"         # ping with real-time graph
+
+# --- AI & Extras ---
+brew "mods"          # pipe text through an LLM inline
+brew "onefetch"      # git repo summary (like fastfetch for repos)
+brew "tokei"         # fast code stats by language
+brew "viddy"         # modern watch with diff highlighting
+brew "gum"           # interactive components for shell scripts

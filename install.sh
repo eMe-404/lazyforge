@@ -88,6 +88,39 @@ git config --global delta.navigate true
 git config --global delta.side-by-side true
 success "git-delta configured"
 
+# --- opencommit (npm) ---
+info "Checking opencommit..."
+if ! command -v oco &>/dev/null; then
+  if command -v npm &>/dev/null; then
+    info "Installing opencommit..."
+    npm install -g opencommit
+    success "opencommit installed"
+  else
+    info "npm not found — skipping opencommit (install Node.js then: npm i -g opencommit)"
+  fi
+else
+  success "opencommit already installed"
+fi
+
+# --- opencommit config ---
+info "Configuring opencommit..."
+OCO_CONFIG="$HOME/.opencommit"
+if [ ! -f "$OCO_CONFIG" ]; then
+  cp "$FORGE_DIR/config/opencommit/config.env" "$OCO_CONFIG"
+  success "opencommit config written to ~/.opencommit (provider: deepseek)"
+  echo ""
+  printf "  ${BLUE}[yaer-forge]${NC} Enter your DeepSeek API key (leave blank to skip): "
+  read -r OCO_KEY
+  if [ -n "$OCO_KEY" ]; then
+    sed -i '' "s/OCO_API_KEY=/OCO_API_KEY=$OCO_KEY/" "$OCO_CONFIG"
+    success "DeepSeek API key saved to ~/.opencommit"
+  else
+    info "Skipped — add your key later: echo 'OCO_API_KEY=<key>' >> ~/.opencommit"
+  fi
+else
+  info "~/.opencommit already exists, skipping"
+fi
+
 echo ""
 success "Done! Open a new terminal tab to activate everything."
 echo ""
@@ -98,3 +131,6 @@ echo "  lg        → lazygit"
 echo "  ll        → eza file list"
 echo "  cc        → claude"
 echo "  nv        → neovim (LazyVim)"
+echo "  ai        → mods (inline LLM queries)"
+echo "  gai       → oco (AI commit messages)"
+echo "  repo      → onefetch (repo summary)"
