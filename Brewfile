@@ -4,6 +4,9 @@
 # --- Fonts ---
 cask "font-jetbrains-mono-nerd-font"
 
+# --- Editor ---
+brew "neovim"
+
 # --- Shell & Prompt ---
 brew "starship"
 brew "zsh-autosuggestions"

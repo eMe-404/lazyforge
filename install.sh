@@ -45,6 +45,15 @@ mkdir -p "$HOME/.config/ghostty"
 ln -sf "$FORGE_DIR/config/ghostty/config" "$HOME/.config/ghostty/config"
 success "Ghostty config linked"
 
+# --- Neovim / LazyVim config ---
+info "Linking Neovim config..."
+if [ -d "$HOME/.config/nvim" ] && [ ! -L "$HOME/.config/nvim" ]; then
+  info "~/.config/nvim exists and is not a symlink — backing up to ~/.config/nvim.bak"
+  mv "$HOME/.config/nvim" "$HOME/.config/nvim.bak"
+fi
+ln -sfn "$FORGE_DIR/config/nvim" "$HOME/.config/nvim"
+success "Neovim config linked (LazyVim will install plugins on first launch)"
+
 # --- zshrc productivity block ---
 info "Checking ~/.zshrc..."
 MARKER="# yaer-forge"
@@ -79,3 +88,4 @@ echo "  z <name>  → zoxide smart jump"
 echo "  lg        → lazygit"
 echo "  ll        → eza file list"
 echo "  cc        → claude"
+echo "  nv        → neovim (LazyVim)"

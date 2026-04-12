@@ -28,6 +28,11 @@ alias lg="lazygit"
 alias ld="lazydocker"
 alias ff="fastfetch"
 
+# --- Neovim ---
+alias nv="nvim"
+export EDITOR="nvim"
+export VISUAL="nvim"
+
 # --- Claude Code shortcuts ---
 alias cc="claude"
 alias ccc="claude --continue"

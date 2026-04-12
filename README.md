@@ -78,6 +78,12 @@ chmod +x install.sh
 | [fastfetch](https://github.com/fastfetch-cli/fastfetch) | System info display |
 | [gping](https://github.com/orf/gping) | Ping with live graph |
 
+### Editor: Neovim + LazyVim
+- LazyVim pre-configured base (`lua/config/lazy.lua`)
+- Catppuccin Mocha theme (matches Ghostty)
+- Local overrides in `lua/config/` and `lua/plugins/`
+- Plugins auto-install on first `nvim` launch
+
 ### Terminal: Ghostty
 - Font: JetBrainsMono Nerd Font, size 20
 - Theme: Catppuccin Mocha
@@ -94,6 +100,7 @@ cat  → bat
 lg   → lazygit
 ld   → lazydocker
 ff   → fastfetch
+nv   → nvim (LazyVim)
 cc   → claude
 ccc  → claude --continue
 fif  → fuzzy file finder with bat preview
@@ -120,7 +127,12 @@ yaer-forge/
 ├── Brewfile                # all tools in one file
 ├── config/
 │   ├── ghostty/config      # Ghostty terminal config
-│   └── zsh/productivity.zsh  # shell aliases, tools, prompt
+│   ├── zsh/productivity.zsh  # shell aliases, tools, prompt
+│   └── nvim/               # Neovim / LazyVim config
+│       ├── init.lua
+│       └── lua/
+│           ├── config/     # options, keymaps, autocmds, lazy bootstrap
+│           └── plugins/    # local plugin specs & overrides
 └── git/
     └── gitconfig-delta     # git-delta settings reference
 ```
