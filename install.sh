@@ -128,6 +128,18 @@ else
   info "~/.opencommit already exists, skipping"
 fi
 
+# --- Claude Code skills ---
+info "Installing Claude Code skills..."
+SKILLS_SRC="$FORGE_DIR/config/claude/skills"
+SKILLS_DEST="$HOME/.claude/skills"
+mkdir -p "$SKILLS_DEST"
+for skill_dir in "$SKILLS_SRC"/*/; do
+  skill_name=$(basename "$skill_dir")
+  mkdir -p "$SKILLS_DEST/$skill_name"
+  cp "$skill_dir/SKILL.md" "$SKILLS_DEST/$skill_name/SKILL.md"
+done
+success "Claude Code skills installed (~/.claude/skills/)"
+
 # --- Claude Code global hooks ---
 info "Applying Claude Code hooks..."
 CLAUDE_SETTINGS="$HOME/.claude/settings.json"
