@@ -6,14 +6,24 @@ One command to go from a fresh Mac to a fully turbocharged terminal.
 
 ---
 
+## Prerequisites
+
+- macOS (Apple Silicon or Intel)
+- [Ghostty](https://ghostty.org) installed (terminal emulator)
+- Node.js + npm *(optional — only needed for `opencommit` AI commits)*
+
+---
+
 ## Quick Install
 
 ```bash
-git clone https://github.com/yaerdili/yaer-forge.git
+git clone https://github.com/eMe-404/yaer-forge.git
 cd yaer-forge
 chmod +x install.sh
 ./install.sh
 ```
+
+The script is idempotent — safe to run again after updates.
 
 ---
 
@@ -28,6 +38,7 @@ chmod +x install.sh
 | [atuin](https://atuin.sh) | Smart shell history with `Ctrl+R` |
 | [zoxide](https://github.com/ajeetdsouza/zoxide) | Smart `cd` — `z project` jumps anywhere |
 | [fzf](https://github.com/junegunn/fzf) | Fuzzy finder for files and history |
+| [mise](https://mise.jdx.dev) | Polyglot runtime manager (Node, Python, Go, Ruby…) |
 
 ### Modern CLI Replacements
 | Tool | Replaces | What it does |
@@ -39,14 +50,17 @@ chmod +x install.sh
 | [dust](https://github.com/bootandy/dust) | `du` | Visual disk usage tree |
 | [duf](https://github.com/muesli/duf) | `df` | Readable disk free output |
 | [btop](https://github.com/aristocratos/btop) | `htop` | Beautiful resource monitor |
+| [tailspin](https://github.com/bensadeh/tailspin) | `tail`/`cat` on logs | Zero-config log highlighter |
 
 ### Git
 | Tool | Purpose |
 |------|---------|
 | [lazygit](https://github.com/jesseduffield/lazygit) | TUI git client (`lg`) |
 | [git-delta](https://github.com/dandavison/delta) | Beautiful diffs, side-by-side |
+| [difftastic](https://github.com/Wilfred/difftastic) | Structural diff — syntax-tree aware (`dt`) |
 | [tig](https://github.com/jonas/tig) | Read-only git history browser |
 | [gh](https://cli.github.com) | GitHub CLI — PRs, issues, workflows |
+| [opencommit](https://github.com/di-sukharev/opencommit) | AI-generated conventional commit messages (`gai`) |
 
 ### Data & Docs
 | Tool | Purpose |
@@ -75,35 +89,47 @@ chmod +x install.sh
 | [just](https://github.com/casey/just) | Project command runner (Makefile replacement) |
 | [navi](https://github.com/denisidoro/navi) | Interactive cheatsheet tool |
 | [tealdeer](https://github.com/dbrgn/tealdeer) | Fast `tldr` — practical command examples |
-| [fastfetch](https://github.com/fastfetch-cli/fastfetch) | System info display |
+| [fastfetch](https://github.com/fastfetch-cli/fastfetch) | System info display (`ff`) |
 | [gping](https://github.com/orf/gping) | Ping with live graph |
+| [onefetch](https://github.com/o2sh/onefetch) | Git repo summary (`repo`) |
+| [tokei](https://github.com/XAMPPRocky/tokei) | Fast code statistics by language |
+| [viddy](https://github.com/sachaos/viddy) | Modern `watch` with diff highlighting |
+| [gum](https://github.com/charmbracelet/gum) | Interactive components for shell scripts |
+| [vhs](https://github.com/charmbracelet/vhs) | Record terminal sessions to GIF/HTML |
 
 ### Editor: Neovim + LazyVim
 - LazyVim pre-configured base (`lua/config/lazy.lua`)
 - Catppuccin Mocha theme (matches Ghostty)
+- Language extras: TypeScript/JS, Python, JSON, YAML — LSP, formatting, linting auto-installed via Mason
 - Local overrides in `lua/config/` and `lua/plugins/`
 - Plugins auto-install on first `nvim` launch
 
 ### Terminal: Ghostty
 - Font: JetBrainsMono Nerd Font, size 20
 - Theme: Catppuccin Mocha
-- Quick terminal: `Cmd+`` `
+- Subtle transparency + blur, hidden titlebar, padding
+- Quick terminal: `Cmd+\``
+- Reload config: `Cmd+Shift+,`
 
 ---
 
 ## Key Aliases
 
 ```zsh
-ls   → eza --icons --git
-ll   → eza -la --icons --git
-cat  → bat
-lg   → lazygit
-ld   → lazydocker
-ff   → fastfetch
-nv   → nvim (LazyVim)
-cc   → claude
-ccc  → claude --continue
-fif  → fuzzy file finder with bat preview
+ls / ll  → eza --icons --git
+cat      → bat
+lg       → lazygit
+ld       → lazydocker
+ff       → fastfetch
+nv       → nvim (LazyVim)
+cc       → claude
+ccc      → claude --continue
+repo     → onefetch (git repo summary)
+gai      → oco (AI commit message)
+logs     → tspin (log highlighter)
+dt       → difft (structural diff)
+fif      → fuzzy file search with bat preview
+cheat/?  → navi cheatsheet browser
 ```
 
 ---
@@ -117,6 +143,7 @@ fif  → fuzzy file finder with bat preview
 | `z <name>` | zoxide — jump to any frecent directory |
 | `Cmd+\`` | Ghostty quick terminal toggle |
 | `Cmd+Shift+R` | navi cheatsheet browser |
+| `Cmd+Shift+,` | Reload Ghostty config live |
 
 ---
 
@@ -129,6 +156,7 @@ yaer-forge/
 ├── config/
 │   ├── ghostty/config      # Ghostty terminal config
 │   ├── zsh/productivity.zsh  # shell aliases, tools, prompt
+│   ├── opencommit/         # opencommit provider config (no API key)
 │   ├── navi/cheats/
 │   │   └── yaer-forge.cheat  # interactive command reference (navi)
 │   └── nvim/               # Neovim / LazyVim config
@@ -146,8 +174,17 @@ yaer-forge/
 
 1. Add the brew formula to `Brewfile`
 2. Add any shell config to `config/zsh/productivity.zsh`
-3. Update this README
-4. Commit and push
+3. Add cheat entries to `config/navi/cheats/yaer-forge.cheat`
+4. Update this README
+5. Commit and push
+
+---
+
+## Notes for Sharing
+
+- **opencommit** requires a DeepSeek API key (prompted during install). Skip it by pressing Enter — you can configure it later by editing `~/.opencommit`.
+- **Neovim LSP servers** (TypeScript, Python, bash, etc.) are installed automatically by Mason on first `nvim` launch.
+- **mise** manages runtime versions per project via `.tool-versions` or `.mise.toml` files.
 
 ---
 
