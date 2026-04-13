@@ -3,5 +3,16 @@ font-size = 20
 theme = Catppuccin Mocha
 shell-integration = zsh
 macos-option-as-alt = true
+
+# --- Window appearance ---
+macos-titlebar-style = hidden
+window-padding-x = 10
+window-padding-y = 10
+background-opacity = 0.95
+background-blur = 8
+unfocused-split-opacity = 0.7
+
+# --- Keybindings ---
 keybind = cmd+grave_accent=toggle_quick_terminal
 keybind = cmd+shift+r=text:navi\n
+keybind = cmd+shift+comma=reload_config
