@@ -477,20 +477,6 @@ $ commit1: git log --oneline | fzf | awk '{print $1}'
 $ commit2: git log --oneline | fzf | awk '{print $1}'
 
 
-% claude, ccrider, sessions
-
-# [cr] Browse and resume Claude Code sessions
-ccrider
-
-# [cr] Search sessions by keyword
-ccrider search "<query>"
-
-# [cr] List recent sessions
-ccrider list
-
-$ query: echo -e "bug fix\nrefactor\nfeature\nreview"
-
-
 % vhs, terminal-recording
 
 # [vhs] Create a new tape file (recording script)

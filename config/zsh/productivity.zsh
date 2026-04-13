@@ -52,8 +52,6 @@ alias logs='tspin'
 # --- Structural diff ---
 alias dt='difft'
 
-# --- Claude Code session browser ---
-alias cr='ccrider'
 
 # --- fzf + bat file finder ---
 alias fif='rg --files-with-matches "" | fzf --preview "bat --color=always {}"'
