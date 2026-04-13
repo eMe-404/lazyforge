@@ -40,11 +40,14 @@ Explore project context
       no  → Ask clarifying questions
   → (both paths) Ask clarifying questions (one at a time)
   → Propose 2-3 approaches
-  → Present design sections (get approval after each)
+  → Present design sections
+      → User approves? no → revise and re-present
+      → User approves? yes → continue
   → Write design doc + commit
   → Spec self-review (fix inline)
-  → User reviews spec
-  → Enter plan mode  ← terminal state
+  → User reviews spec?
+      → Changes requested → revise doc + re-run spec self-review
+      → Approved → Enter plan mode  ← terminal state
 ```
 
 **The terminal state is entering plan mode.** Do NOT invoke frontend-design, mcp-builder, or any other implementation skill. After brainstorming is complete and the spec is approved, switch to plan mode for implementation planning.
@@ -93,6 +96,7 @@ Explore project context
 **Documentation:**
 
 - Write the validated design (spec) to `docs/specs/YYYY-MM-DD-<topic>-design.md`
+- Use the elements-of-style skill if available to tighten the prose before committing
 - Commit the design document to git
 
 **Spec Self-Review:**
@@ -134,17 +138,18 @@ The Visual Companion is a browser-based tool for creating interactive mockups, d
 
 After exploring project context, if the topic is likely to involve visual questions (UI layouts, component diagrams, data flows, architecture sketches), offer the companion in a standalone message — no question attached:
 
-> "This looks like it'll involve some visual questions — want me to open a Visual Companion in the browser so we can work through mockups interactively? It makes layout and flow discussions much easier. (Just say yes or no — we can do everything in text too.)"
+> "Some of what we're working on might be easier to explain if I can show it to you in a web browser. I can put together mockups, diagrams, comparisons, and other visuals as we go. This feature is still new and can be token-intensive. Want to try it? (Requires opening a local URL)"
 
-Wait for the response before proceeding. If the user declines, continue text-only.
+**This offer MUST be its own message.** Do not combine it with clarifying questions, context summaries, or any other content. Wait for the user's response before continuing. If they decline, proceed with text-only.
 
 **Per-question decision rule:**
 
-For each question or design step, decide:
-- Visual content (layout, diagram, flow, comparison) → use browser
-- Text content (requirements, constraints, trade-offs) → use terminal
+Even after the user accepts, decide FOR EACH QUESTION whether to use the browser or the terminal. The test: **would the user understand this better by seeing it than reading it?**
 
-Don't force everything into the browser. Use it only when a visual genuinely helps.
+- **Use the browser** for content that IS visual — mockups, wireframes, layout comparisons, architecture diagrams
+- **Use the terminal** for content that is text — requirements questions, conceptual choices, tradeoff lists, scope decisions
+
+A question about a UI topic is not automatically a visual question. "What does personality mean in this context?" is conceptual — use the terminal. "Which wizard layout works better?" is visual — use the browser.
 
 **Guide:**
 
