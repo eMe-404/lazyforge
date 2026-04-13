@@ -28,7 +28,7 @@ You MUST create a task for each of these items and complete them in order:
 5. **Write design doc** — save to `docs/specs/YYYY-MM-DD-<topic>-design.md` and commit
 6. **Spec self-review** — quick inline check for placeholders, contradictions, ambiguity, scope
 7. **User reviews written spec** — ask user to review the spec file before proceeding
-8. **Transition to implementation** — use Claude Code's built-in plan mode to create the implementation plan
+8. **Transition to implementation** — switch to plan mode to create the implementation plan
 
 ## Process Flow
 
@@ -40,10 +40,10 @@ Explore project context
   → Write design doc + commit
   → Spec self-review (fix inline)
   → User reviews spec
-  → Enter Claude Code plan mode  ← terminal state
+  → Enter plan mode  ← terminal state
 ```
 
-**The terminal state is entering Claude Code's plan mode.** Do NOT invoke frontend-design, mcp-builder, or any other implementation skill. After brainstorming is complete and the spec is approved, proceed directly to Claude Code's built-in plan mode for implementation planning.
+**The terminal state is entering plan mode.** Do NOT invoke frontend-design, mcp-builder, or any other implementation skill. After brainstorming is complete and the spec is approved, switch to plan mode for implementation planning.
 
 ## The Process
 
@@ -110,7 +110,7 @@ Wait for the user's response. If they request changes, make them and re-run the 
 
 **Implementation:**
 
-- Proceed to Claude Code's built-in plan mode for implementation planning
+- Switch to plan mode for implementation planning
 - Do NOT invoke any other skill at this point
 
 ## Key Principles
