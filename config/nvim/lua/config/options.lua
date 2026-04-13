@@ -4,3 +4,4 @@
 vim.opt.relativenumber = true   -- relative line numbers
 vim.opt.scrolloff = 8           -- keep 8 lines visible around cursor
 vim.opt.colorcolumn = "100"     -- soft ruler at 100 chars
+vim.opt.autowrite = true        -- auto-save when leaving a buffer
