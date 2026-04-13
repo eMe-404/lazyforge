@@ -1,4 +1,4 @@
-# yaer-forge: Tool Review & Recommendations (2025)
+# lazyforge: Tool Review & Recommendations (2025)
 
 > Quick reference: current stack health + tools worth adding.
 > Read in terminal: `glow docs/ai-first-review-2025.md`

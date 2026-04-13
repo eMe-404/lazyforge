@@ -495,7 +495,7 @@ $ name: echo -e "demo\nsetup\nworkflow\ninstall"
 $ output: echo -e "demo.gif\ndemo.mp4\ndemo.webm"
 
 
-% yaer-forge, forge
+% lazyforge, forge
 
 # [forge] Run full install on a fresh machine
 ./install.sh
@@ -504,4 +504,4 @@ $ output: echo -e "demo.gif\ndemo.mp4\ndemo.webm"
 brew bundle install
 
 # [forge] Search this cheatsheet
-navi --query yaer-forge
+navi --query lazyforge

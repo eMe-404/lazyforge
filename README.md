@@ -1,4 +1,4 @@
-# yaer-forge ⚡
+# lazyforge ⚡
 
 > My personal developer productivity setup — terminal tools, shell config, and Ghostty configuration for a fast, modern AI-assisted coding environment on macOS.
 
@@ -17,8 +17,8 @@ One command to go from a fresh Mac to a fully turbocharged terminal.
 ## Quick Install
 
 ```bash
-git clone https://github.com/eMe-404/yaer-forge.git
-cd yaer-forge
+git clone https://github.com/eMe-404/lazyforge.git
+cd lazyforge
 chmod +x install.sh
 ./install.sh
 ```
@@ -150,7 +150,7 @@ cheat/?  → navi cheatsheet browser
 ## Repo Structure
 
 ```
-yaer-forge/
+lazyforge/
 ├── install.sh              # automated setup script
 ├── Brewfile                # all tools in one file
 ├── config/
@@ -158,7 +158,7 @@ yaer-forge/
 │   ├── zsh/productivity.zsh  # shell aliases, tools, prompt
 │   ├── opencommit/         # opencommit provider config (no API key)
 │   ├── navi/cheats/
-│   │   └── yaer-forge.cheat  # interactive command reference (navi)
+│   │   └── lazyforge.cheat  # interactive command reference (navi)
 │   └── nvim/               # Neovim / LazyVim config
 │       ├── init.lua
 │       └── lua/
@@ -174,7 +174,7 @@ yaer-forge/
 
 1. Add the brew formula to `Brewfile`
 2. Add any shell config to `config/zsh/productivity.zsh`
-3. Add cheat entries to `config/navi/cheats/yaer-forge.cheat`
+3. Add cheat entries to `config/navi/cheats/lazyforge.cheat`
 4. Update this README
 5. Commit and push
 

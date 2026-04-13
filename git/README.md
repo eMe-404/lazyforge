@@ -27,5 +27,5 @@ Or include `gitconfig-delta` from your `~/.gitconfig`:
 
 ```ini
 [include]
-    path = /path/to/yaer-forge/git/gitconfig-delta
+    path = /path/to/lazyforge/git/gitconfig-delta
 ```

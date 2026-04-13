@@ -1,6 +1,6 @@
-# yaer-forge productivity shell config
+# lazyforge productivity shell config
 # Source this from your ~/.zshrc before the SDKMAN block:
-#   source ~/path/to/yaer-forge/config/zsh/productivity.zsh
+#   source ~/path/to/lazyforge/config/zsh/productivity.zsh
 
 # --- zsh-autosuggestions & zsh-syntax-highlighting ---
 source $(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh

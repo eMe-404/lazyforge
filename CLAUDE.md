@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Repo Is
 
-`yaer-forge` is a macOS developer productivity setup — a dotfiles/config manager that bootstraps a full terminal environment with a single command. It installs tools via Homebrew and symlinks configs to their expected locations.
+`lazyforge` is a macOS developer productivity setup — a dotfiles/config manager that bootstraps a full terminal environment with a single command. It installs tools via Homebrew and symlinks configs to their expected locations.
 
 ## Setup & Installation
 
@@ -19,7 +19,7 @@ brew bundle install
 # 1. Add it to Brewfile
 # 2. Run: brew bundle install
 # 3. Add aliases/config to config/zsh/productivity.zsh
-# 4. Optionally add cheat entries to config/navi/cheats/yaer-forge.cheat
+# 4. Optionally add cheat entries to config/navi/cheats/lazyforge.cheat
 ```
 
 ## How Configs Are Deployed
@@ -30,7 +30,7 @@ brew bundle install
 |-----------|-------------|
 | `config/ghostty/config` | `~/.config/ghostty/config` |
 | `config/nvim/` | `~/.config/nvim` |
-| `config/navi/cheats/yaer-forge.cheat` | `~/.local/share/navi/cheats/yaer-forge/yaer-forge.cheat` |
+| `config/navi/cheats/lazyforge.cheat` | `~/.local/share/navi/cheats/lazyforge/lazyforge.cheat` |
 | `config/navi/config.yaml` | `~/.config/navi/config.yaml` |
 
 The zsh config (`config/zsh/productivity.zsh`) is **sourced** from `~/.zshrc` via a line injected by install.sh — not symlinked.
@@ -63,7 +63,7 @@ Add new plugins by creating files under `lua/plugins/`. LazyVim auto-discovers t
 
 ## Adding Cheat Entries (navi)
 
-Cheat entries follow this format in `config/navi/cheats/yaer-forge.cheat`:
+Cheat entries follow this format in `config/navi/cheats/lazyforge.cheat`:
 
 ```
 % section-tag, another-tag

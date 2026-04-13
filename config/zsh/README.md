@@ -40,5 +40,5 @@ The `install.sh` script handles this automatically. To do it manually,
 add this line before your SDKMAN block:
 
 ```zsh
-source /path/to/yaer-forge/config/zsh/productivity.zsh
+source /path/to/lazyforge/config/zsh/productivity.zsh
 ```

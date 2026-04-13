@@ -1,5 +1,5 @@
 #!/bin/zsh
-# yaer-forge install script
+# lazyforge install script
 # Sets up a fully productive terminal environment on a fresh macOS machine.
 # Usage: ./install.sh
 
@@ -10,8 +10,8 @@ GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-info()    { echo "${BLUE}[yaer-forge]${NC} $1"; }
-success() { echo "${GREEN}[yaer-forge]${NC} $1"; }
+info()    { echo "${BLUE}[lazyforge]${NC} $1"; }
+success() { echo "${GREEN}[lazyforge]${NC} $1"; }
 
 # --- Homebrew ---
 info "Checking Homebrew..."
@@ -51,7 +51,7 @@ NAVI_CHEATS_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/navi/cheats"
 NAVI_CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/navi"
 mkdir -p "$NAVI_CHEATS_DIR" "$NAVI_CONFIG_DIR"
 ln -sf  "$FORGE_DIR/config/navi/config.yaml" "$NAVI_CONFIG_DIR/config.yaml"
-ln -sfn "$FORGE_DIR/config/navi/cheats"      "$NAVI_CHEATS_DIR/yaer-forge"
+ln -sfn "$FORGE_DIR/config/navi/cheats"      "$NAVI_CHEATS_DIR/lazyforge"
 success "navi ready — run 'navi' or '? <topic>' to search"
 
 # --- Neovim / LazyVim config ---
@@ -65,15 +65,15 @@ success "Neovim config linked (LazyVim will install plugins on first launch)"
 
 # --- zshrc productivity block ---
 info "Checking ~/.zshrc..."
-MARKER="# yaer-forge"
+MARKER="# lazyforge"
 if ! grep -q "$MARKER" "$HOME/.zshrc"; then
   # Insert before SDKMAN block if it exists, otherwise append
   SDKMAN_MARKER="#THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!"
   if grep -q "$SDKMAN_MARKER" "$HOME/.zshrc"; then
     # Insert before SDKMAN line
-    sed -i '' "s|$SDKMAN_MARKER|# yaer-forge\nsource $FORGE_DIR/config/zsh/productivity.zsh\n\n$SDKMAN_MARKER|" "$HOME/.zshrc"
+    sed -i '' "s|$SDKMAN_MARKER|# lazyforge\nsource $FORGE_DIR/config/zsh/productivity.zsh\n\n$SDKMAN_MARKER|" "$HOME/.zshrc"
   else
-    echo "\n# yaer-forge\nsource $FORGE_DIR/config/zsh/productivity.zsh" >> "$HOME/.zshrc"
+    echo "\n# lazyforge\nsource $FORGE_DIR/config/zsh/productivity.zsh" >> "$HOME/.zshrc"
   fi
   success "productivity.zsh sourced in ~/.zshrc"
 else
@@ -116,7 +116,7 @@ if [ ! -f "$OCO_CONFIG" ]; then
   cp "$FORGE_DIR/config/opencommit/config.env" "$OCO_CONFIG"
   success "opencommit config written to ~/.opencommit (provider: deepseek)"
   echo ""
-  printf "  ${BLUE}[yaer-forge]${NC} Enter your DeepSeek API key (leave blank to skip): "
+  printf "  ${BLUE}[lazyforge]${NC} Enter your DeepSeek API key (leave blank to skip): "
   read -r OCO_KEY
   if [ -n "$OCO_KEY" ]; then
     sed -i '' "s/OCO_API_KEY=/OCO_API_KEY=$OCO_KEY/" "$OCO_CONFIG"

@@ -32,5 +32,5 @@ To do it manually:
 
 ```bash
 mkdir -p ~/.config/ghostty
-ln -sf /path/to/yaer-forge/config/ghostty/config ~/.config/ghostty/config
+ln -sf /path/to/lazyforge/config/ghostty/config ~/.config/ghostty/config
 ```
