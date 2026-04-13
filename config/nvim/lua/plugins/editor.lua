@@ -4,6 +4,9 @@ return {
   -- Example: disable a LazyVim default plugin
   -- { "folke/flash.nvim", enabled = false },
 
+  -- disable autocompletion
+  { "hrsh7th/nvim-cmp", enabled = false },
+
   -- disable markdownlint (too noisy when reviewing external docs)
   {
     "mfussenegger/nvim-lint",
