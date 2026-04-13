@@ -65,3 +65,8 @@ brew "onefetch"      # git repo summary (like fastfetch for repos)
 brew "tokei"         # fast code stats by language
 brew "viddy"         # modern watch with diff highlighting
 brew "gum"           # interactive components for shell scripts
+brew "mise"          # polyglot runtime manager (node, python, go, etc.)
+brew "tailspin"      # zero-config log highlighter
+brew "difftastic"    # structural diff — syntax-tree aware, 30+ languages
+brew "ccrider"       # search and resume Claude Code sessions
+brew "vhs"           # record terminal sessions to GIF/HTML

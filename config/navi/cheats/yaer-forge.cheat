@@ -408,6 +408,107 @@ $ option2: echo -e "a\nb\nc"
 $ option3: echo -e "x\ny\nz"
 
 
+% mise, runtime, versions
+
+# [mise] Install a runtime version
+mise install <runtime>@<version>
+
+# [mise] Set runtime version for current project
+mise use <runtime>@<version>
+
+# [mise] Set global default runtime version
+mise use --global <runtime>@<version>
+
+# [mise] List all installed runtimes
+mise list
+
+# [mise] List available versions for a runtime
+mise ls-remote <runtime>
+
+# [mise] Show current active versions
+mise current
+
+# [mise] Run a command with a specific runtime version
+mise exec <runtime>@<version> -- <command>
+
+$ runtime: echo -e "node\npython\ngo\nruby\njava\nrust"
+$ version: mise ls-remote node 2>/dev/null | tail -20 | awk '{print $1}'
+
+
+% logs, tailspin, log-viewer
+
+# [logs] View a log file with syntax highlighting
+tspin <file>
+
+# [logs] Follow a log file (like tail -f)
+tspin --follow <file>
+
+# [logs] Pipe command output through tailspin
+<command> | tspin
+
+# [logs] Highlight docker container logs
+docker logs -f <container> | tspin
+
+$ file: fd --type f --extension log | fzf
+$ container: docker ps --format '{{.Names}}'
+$ command: echo -e "cat app.log\ntail -f /var/log/system.log"
+
+
+% diff, difftastic, structural-diff
+
+# [dt] Structural diff between two files
+difft <file1> <file2>
+
+# [dt] Diff using git difftool (last commit)
+git difftool HEAD~1
+
+# [dt] Diff staged changes
+git difftool --staged
+
+# [dt] Diff two commits
+git difftool <commit1> <commit2>
+
+# [dt] Diff a specific file between commits
+git difftool <commit1> <commit2> -- <file>
+
+$ file1: fd --type f | fzf
+$ file2: fd --type f | fzf
+$ commit1: git log --oneline | fzf | awk '{print $1}'
+$ commit2: git log --oneline | fzf | awk '{print $1}'
+
+
+% claude, ccrider, sessions
+
+# [cr] Browse and resume Claude Code sessions
+ccrider
+
+# [cr] Search sessions by keyword
+ccrider search "<query>"
+
+# [cr] List recent sessions
+ccrider list
+
+$ query: echo -e "bug fix\nrefactor\nfeature\nreview"
+
+
+% vhs, terminal-recording
+
+# [vhs] Create a new tape file (recording script)
+vhs new <name>.tape
+
+# [vhs] Record a tape to GIF
+vhs <name>.tape
+
+# [vhs] Record to a specific output format
+vhs <name>.tape --output <output>
+
+# [vhs] Validate a tape file without recording
+vhs validate <name>.tape
+
+$ name: echo -e "demo\nsetup\nworkflow\ninstall"
+$ output: echo -e "demo.gif\ndemo.mp4\ndemo.webm"
+
+
 % yaer-forge, forge
 
 # [forge] Run full install on a fresh machine

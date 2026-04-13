@@ -88,6 +88,13 @@ git config --global delta.navigate true
 git config --global delta.side-by-side true
 success "git-delta configured"
 
+# --- difftastic git integration ---
+info "Configuring difftastic..."
+git config --global diff.tool difftastic
+git config --global difftool.difftastic.cmd 'difft "$LOCAL" "$REMOTE"'
+git config --global difftool.prompt false
+success "difftastic configured as git difftool (use: git difftool)"
+
 # --- opencommit (npm) ---
 info "Checking opencommit..."
 if ! command -v oco &>/dev/null; then
@@ -131,6 +138,8 @@ echo "  lg        → lazygit"
 echo "  ll        → eza file list"
 echo "  cc        → claude"
 echo "  nv        → neovim (LazyVim)"
-echo "  ai        → mods (inline LLM queries)"
 echo "  gai       → oco (AI commit messages)"
 echo "  repo      → onefetch (repo summary)"
+echo "  logs      → tailspin (log highlighter)"
+echo "  dt        → difft (structural diff)"
+echo "  cr        → ccrider (Claude session browser)"

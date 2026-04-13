@@ -20,6 +20,9 @@ eval "$(atuin init zsh)"
 # --- zoxide (smart cd) ---
 eval "$(zoxide init zsh)"
 
+# --- mise (runtime manager) ---
+eval "$(mise activate zsh)"
+
 # --- Better defaults ---
 alias ls="eza --icons --git"
 alias ll="eza -la --icons --git"
@@ -42,6 +45,15 @@ alias repo='onefetch'
 
 # --- AI commit messages (opencommit) ---
 alias gai='oco'
+
+# --- Log viewing ---
+alias logs='tspin'
+
+# --- Structural diff ---
+alias dt='difft'
+
+# --- Claude Code session browser ---
+alias cr='ccrider'
 
 # --- fzf + bat file finder ---
 alias fif='rg --files-with-matches "" | fzf --preview "bat --color=always {}"'
