@@ -68,5 +68,5 @@ brew "gum"           # interactive components for shell scripts
 brew "mise"          # polyglot runtime manager (node, python, go, etc.)
 brew "tailspin"      # zero-config log highlighter
 brew "difftastic"    # structural diff — syntax-tree aware, 30+ languages
-brew "ccrider"       # search and resume Claude Code sessions
+brew "neilberkman/tap/ccrider"  # search and resume Claude Code sessions
 brew "vhs"           # record terminal sessions to GIF/HTML
