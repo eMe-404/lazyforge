@@ -1,4 +1,4 @@
-# yaer-forge Brewfile
+# lazyforge Brewfile
 # Install everything: brew bundle install
 
 # --- Fonts ---
