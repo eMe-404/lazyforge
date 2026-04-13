@@ -22,19 +22,23 @@ Every project goes through this process. A todo list, a single-function utility,
 You MUST create a task for each of these items and complete them in order:
 
 1. **Explore project context** — check files, docs, recent commits
-2. **Ask clarifying questions** — one at a time, understand purpose/constraints/success criteria
-3. **Propose 2-3 approaches** — with trade-offs and your recommendation
-4. **Present design** — in sections scaled to their complexity, get user approval after each section
-5. **Write design doc** — save to `docs/specs/YYYY-MM-DD-<topic>-design.md` and commit
-6. **Spec self-review** — quick inline check for placeholders, contradictions, ambiguity, scope
-7. **User reviews written spec** — ask user to review the spec file before proceeding
-8. **Transition to implementation** — switch to plan mode to create the implementation plan
+2. **Offer visual companion** — if topic will involve visual questions (mockups, diagrams, layouts); send as its own message, not combined with a question
+3. **Ask clarifying questions** — one at a time, understand purpose/constraints/success criteria
+4. **Propose 2-3 approaches** — with trade-offs and your recommendation
+5. **Present design** — in sections scaled to their complexity, get user approval after each section
+6. **Write design doc** — save to `docs/specs/YYYY-MM-DD-<topic>-design.md` and commit
+7. **Spec self-review** — quick inline check for placeholders, contradictions, ambiguity, scope
+8. **User reviews written spec** — ask user to review the spec file before proceeding
+9. **Transition to implementation** — switch to plan mode to create the implementation plan
 
 ## Process Flow
 
 ```
 Explore project context
-  → Ask clarifying questions (one at a time)
+  → Visual questions ahead?
+      yes → Offer Visual Companion (own message, no other content)
+      no  → Ask clarifying questions
+  → (both paths) Ask clarifying questions (one at a time)
   → Propose 2-3 approaches
   → Present design sections (get approval after each)
   → Write design doc + commit
@@ -121,3 +125,27 @@ Wait for the user's response. If they request changes, make them and re-run the 
 - **Explore alternatives** - Always propose 2-3 approaches before settling
 - **Incremental validation** - Present design, get approval before moving on
 - **Be flexible** - Go back and clarify when something doesn't make sense
+
+## Visual Companion
+
+The Visual Companion is a browser-based tool for creating interactive mockups, diagrams, and visual explorations during brainstorming. It lets the user click, drag, and interact with visual content rather than describing everything in text.
+
+**Offering it:**
+
+After exploring project context, if the topic is likely to involve visual questions (UI layouts, component diagrams, data flows, architecture sketches), offer the companion in a standalone message — no question attached:
+
+> "This looks like it'll involve some visual questions — want me to open a Visual Companion in the browser so we can work through mockups interactively? It makes layout and flow discussions much easier. (Just say yes or no — we can do everything in text too.)"
+
+Wait for the response before proceeding. If the user declines, continue text-only.
+
+**Per-question decision rule:**
+
+For each question or design step, decide:
+- Visual content (layout, diagram, flow, comparison) → use browser
+- Text content (requirements, constraints, trade-offs) → use terminal
+
+Don't force everything into the browser. Use it only when a visual genuinely helps.
+
+**Guide:**
+
+When the user accepts, read `visual-companion.md` in this directory for the full guide on how to start a session, write HTML content, and read browser events.
