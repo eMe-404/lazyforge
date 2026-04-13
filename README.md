@@ -104,6 +104,17 @@ The script is idempotent — safe to run again after updates.
 - Local overrides in `lua/config/` and `lua/plugins/`
 - Plugins auto-install on first `nvim` launch
 
+### Claude Code Hooks
+
+Generic hooks applied globally to all Claude Code sessions via `config/claude/hooks.json`:
+
+| Hook | Trigger | What it does |
+|------|---------|-------------|
+| **Notification** | When Claude needs attention | macOS notification with sound |
+| **Dangerous command block** | Before any Bash command | Blocks `rm -rf /`, force-push to main, `DROP TABLE` |
+| **Sensitive file protection** | Before Edit/Write | Blocks edits to `.env`, `*.pem`, `*.key`, credentials |
+| **Session git context** | Session startup | Shows current branch + last 5 commits |
+
 ### Terminal: Ghostty
 - Font: JetBrainsMono Nerd Font, size 20
 - Theme: Catppuccin Mocha

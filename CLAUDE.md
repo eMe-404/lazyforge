@@ -76,6 +76,14 @@ $ variable: echo -e "option1\noption2"
 
 Run `navi` (or press `Cmd+Shift+R` in Ghostty) to browse interactively.
 
+## Claude Code Hooks
+
+Generic hooks are stored in `config/claude/hooks.json` and merged into `~/.claude/settings.json` globally by `install.sh`. They apply to **all** Claude Code sessions, not just this repo.
+
+Active hooks: macOS notification, dangerous command block (Bash), sensitive file protection (Edit/Write), session git context (SessionStart).
+
+To update hooks: edit `config/claude/hooks.json`, then re-run `./install.sh`.
+
 ## Tool Selection Rules
 
 When recommending tools to add to this forge:

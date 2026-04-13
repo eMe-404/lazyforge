@@ -128,6 +128,19 @@ else
   info "~/.opencommit already exists, skipping"
 fi
 
+# --- Claude Code global hooks ---
+info "Applying Claude Code hooks..."
+CLAUDE_SETTINGS="$HOME/.claude/settings.json"
+HOOKS_TEMPLATE="$FORGE_DIR/config/claude/hooks.json"
+if [ -f "$CLAUDE_SETTINGS" ]; then
+  jq -s '.[0] * .[1]' "$CLAUDE_SETTINGS" "$HOOKS_TEMPLATE" > /tmp/claude_settings_merged.json \
+    && mv /tmp/claude_settings_merged.json "$CLAUDE_SETTINGS"
+  success "Claude Code hooks merged into ~/.claude/settings.json"
+else
+  cp "$HOOKS_TEMPLATE" "$CLAUDE_SETTINGS"
+  success "Claude Code settings created with hooks"
+fi
+
 echo ""
 success "Done! Open a new terminal tab to activate everything."
 echo ""
