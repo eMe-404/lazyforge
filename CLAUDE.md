@@ -76,6 +76,13 @@ $ variable: echo -e "option1\noption2"
 
 Run `navi` (or press `Cmd+Shift+R` in Ghostty) to browse interactively.
 
+## Tool Selection Rules
+
+When recommending tools to add to this forge:
+- **Minimum 1,000 GitHub stars** — below this threshold indicates insufficient community adoption; skip without exception
+- Prefer brew-installable tools from homebrew-core over third-party taps
+- Tools must fill a genuine gap — do not add if the existing stack already covers the use case
+
 ## Key Aliases (defined in config/zsh/productivity.zsh)
 
 | Alias | Expands to |
