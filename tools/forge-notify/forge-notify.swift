@@ -13,6 +13,7 @@
 
 import Cocoa
 import SwiftUI
+import ApplicationServices
 
 // MARK: - Input model
 
@@ -21,29 +22,20 @@ struct NotificationPayload: Decodable {
     let title:   String?
 }
 
-// MARK: - AppleScript helpers
+// MARK: - Accessibility + AppleScript helpers
 
-// Send y↵ to Ghostty and bring the given window to front.
-// Used when the user explicitly clicks Allow — redirects to the terminal.
-func allowInGhostty(windowID: Int?, then done: @escaping () -> Void) {
-    let raiseScript: String
-    if let wid = windowID {
-        // Raise the exact window that had focus before the pill appeared.
-        raiseScript = """
-        tell application "Ghostty"
-            set index of (first window whose id is \(wid)) to 1
-            activate
-        end tell
-        """
-    } else {
-        raiseScript = "tell application \"Ghostty\" to activate"
-    }
-
+// Send y↵ to Ghostty and raise the exact tab that had focus before the pill appeared.
+// Uses the AX element captured at launch (tab-level, not just window-level).
+func allowInGhostty(axWindow: AXUIElement?, then done: @escaping () -> Void) {
     DispatchQueue.global(qos: .userInitiated).async {
-        if let s = NSAppleScript(source: raiseScript) {
-            var e: NSDictionary?
-            s.executeAndReturnError(&e)
+        // Raise the specific tab via Accessibility API.
+        if let win = axWindow {
+            AXUIElementPerformAction(win, kAXRaiseAction as CFString)
         }
+        // Activate the Ghostty process so the raised tab comes to the foreground.
+        NSRunningApplication
+            .runningApplications(withBundleIdentifier: "com.mitchellh.ghostty")
+            .first?.activate(options: .activateIgnoringOtherApps)
         Thread.sleep(forTimeInterval: 0.15)
         let keystroke = """
         tell application "System Events"
@@ -91,21 +83,18 @@ func denyInGhostty(then done: @escaping () -> Void) {
     }
 }
 
-// Query Ghostty for its currently-frontmost window ID *before* we steal focus.
-func ghosttyFrontWindowID() -> Int? {
-    let script = """
-    tell application "Ghostty"
-        if (count of windows) > 0 then
-            return id of front window
-        end if
-    end tell
-    """
-    guard let s = NSAppleScript(source: script) else { return nil }
-    var err: NSDictionary?
-    let result = s.executeAndReturnError(&err)
-    guard err == nil else { return nil }
-    let v = result.int32Value
-    return v > 0 ? Int(v) : nil
+// Capture the AX element for Ghostty's focused tab *before* forge-notify changes focus.
+// kAXFocusedWindowAttribute gives the specific tab element — not just the window container —
+// so kAXRaiseAction later lands on the exact tab Claude was running in.
+func ghosttyFocusedAXWindow() -> AXUIElement? {
+    let apps = NSRunningApplication.runningApplications(withBundleIdentifier: "com.mitchellh.ghostty")
+    guard let app = apps.first else { return nil }
+    let axApp = AXUIElementCreateApplication(app.processIdentifier)
+    var value: CFTypeRef?
+    guard AXUIElementCopyAttributeValue(axApp, kAXFocusedWindowAttribute as CFString, &value) == .success,
+          let v = value else { return nil }
+    // swiftlint:disable:next force_cast
+    return (v as! AXUIElement)
 }
 
 // MARK: - Catppuccin Mocha palette
@@ -212,11 +201,12 @@ struct PillView: View {
 class AppDelegate: NSObject, NSApplicationDelegate {
     var window: NSWindow!
     let message: String
-    let ghosttyWindowID: Int?   // captured before we steal focus
+    let ghosttyAXWindow: AXUIElement?   // captured before we steal focus
+    var keyMonitor: Any?                // global keyboard monitor (no app activation needed)
 
-    init(message: String, ghosttyWindowID: Int?) {
+    init(message: String, ghosttyAXWindow: AXUIElement?) {
         self.message        = message
-        self.ghosttyWindowID = ghosttyWindowID
+        self.ghosttyAXWindow = ghosttyAXWindow
     }
 
     func applicationDidFinishLaunching(_: Notification) {
@@ -230,30 +220,46 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let x = frame.minX + (frame.width - w) / 2
         let y = frame.maxY - h - 8
 
+        // .nonactivatingPanel: clicks don't steal focus; first click hits the button directly.
+        // This is how macOS system HUDs (volume, brightness) work.
         window = NSPanel(
             contentRect: .init(x: x, y: y, width: w, height: h),
-            styleMask:   [.borderless],
+            styleMask:   [.borderless, .nonactivatingPanel],
             backing:     .buffered,
             defer:       false
         )
-        window.level              = NSWindow.Level(rawValue: Int(NSWindow.Level.floating.rawValue) + 1)
+        window.level              = .screenSaver
         window.backgroundColor    = .clear
         window.isOpaque           = false
         window.hasShadow          = false
         window.collectionBehavior = [.canJoinAllSpaces, .stationary, .fullScreenAuxiliary]
         window.isMovableByWindowBackground = true
 
-        let wid = ghosttyWindowID
+        let axWin = ghosttyAXWindow
         window.contentView = NSHostingView(rootView: PillView(
             message:       message,
-            onAllowClick:  { allowInGhostty(windowID: wid) { exit(0) } },
+            onAllowClick:  { allowInGhostty(axWindow: axWin) { exit(0) } },
             onAllowSilent: { allowSilently { exit(0) } },
             onDeny:        { denyInGhostty  { exit(0) } }
         ))
 
-        window.makeKeyAndOrderFront(nil)
-        if #available(macOS 14.0, *) { NSApp.activate() }
-        else { NSApp.activate(ignoringOtherApps: true) }
+        // Show above everything without activating the app or switching Spaces.
+        window.orderFrontRegardless()
+
+        // Global keyboard monitor — works even when the browser (or any other app) has focus.
+        // Return / Cmd+Return → allow silently; Escape → deny.
+        keyMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            guard let self = self else { return }
+            switch event.keyCode {
+            case 36: // Return / Cmd+Return
+                if let m = self.keyMonitor { NSEvent.removeMonitor(m); self.keyMonitor = nil }
+                allowSilently { exit(0) }
+            case 53: // Escape
+                if let m = self.keyMonitor { NSEvent.removeMonitor(m); self.keyMonitor = nil }
+                denyInGhostty { exit(0) }
+            default: break
+            }
+        }
     }
 }
 
@@ -267,12 +273,13 @@ if let p = try? JSONDecoder().decode(NotificationPayload.self, from: inputData) 
     message = p.message ?? p.title ?? message
 }
 
-// Capture the frontmost Ghostty window ID *before* we steal focus.
-// This is the exact tab/window the user was in when Claude notified them.
-let savedWindowID = ghosttyFrontWindowID()
+// Capture the AX element for Ghostty's focused tab *before* forge-notify changes anything.
+// kAXFocusedWindowAttribute is tab-level: it identifies the exact tab Claude is running in,
+// not just the container window (which all tabs share).
+let savedAXWindow = ghosttyFocusedAXWindow()
 
 let app      = NSApplication.shared
-let delegate = AppDelegate(message: message, ghosttyWindowID: savedWindowID)
+let delegate = AppDelegate(message: message, ghosttyAXWindow: savedAXWindow)
 app.setActivationPolicy(.accessory)
 app.delegate = delegate
 app.run()
