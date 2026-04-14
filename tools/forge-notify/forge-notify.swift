@@ -4,7 +4,7 @@
 // Displays a floating pill at the top of the screen with Allow / Deny buttons.
 // Exits 0 (allow) or 2 (deny).
 //
-// Compile:  swiftc forge-notify.swift -o forge-notify
+// Compile:  see install.sh (requires embedding Info.plist)
 // Install:  ./install.sh
 
 import Cocoa
@@ -72,7 +72,6 @@ struct PillView: View {
                 .shadow(color: .black.opacity(0.55), radius: 18, y: 6)
 
             HStack(spacing: 12) {
-                // Tool badge
                 HStack(spacing: 5) {
                     Text(icon).font(.system(size: 15))
                     Text(toolName.uppercased())
@@ -86,7 +85,6 @@ struct PillView: View {
                     .fill(Color.moSurface)
                     .frame(width: 1, height: 26)
 
-                // Command or path
                 Text(detail.isEmpty ? "—" : detail)
                     .font(.system(size: 11, design: .monospaced))
                     .foregroundColor(.moText)
@@ -94,7 +92,6 @@ struct PillView: View {
                     .truncationMode(.middle)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
-                // Deny
                 Button(action: onDeny) {
                     Text("Deny")
                         .font(.system(size: 11, weight: .semibold))
@@ -106,7 +103,6 @@ struct PillView: View {
                 .buttonStyle(.plain)
                 .keyboardShortcut(.escape, modifiers: [])
 
-                // Allow (with countdown)
                 Button(action: onAllow) {
                     Text("Allow  \(timeLeft)s")
                         .font(.system(size: 11, weight: .semibold))
@@ -147,23 +143,28 @@ struct PillView: View {
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     var window: NSWindow!
+    let toolName: String
+    let detail: String
+
+    init(toolName: String, detail: String) {
+        self.toolName = toolName
+        self.detail   = detail
+    }
 
     func applicationDidFinishLaunching(_: Notification) {
-        // Parse stdin — Claude Code pipes JSON here
-        let raw = FileHandle.standardInput.readDataToEndOfFile()
-        var toolName = "Tool"
-        var detail   = ""
-        if let p = try? JSONDecoder().decode(HookPayload.self, from: raw) {
-            toolName = p.toolName
-            detail   = p.toolInput.command ?? p.toolInput.filePath ?? ""
-        }
+        // No blocking calls here — stdin was already read before app.run()
 
-        // Position: top-center, just below menu bar / notch
-        let screen = NSScreen.main?.visibleFrame ?? .init(x: 0, y: 0, width: 1440, height: 900)
+        // Use the screen the mouse cursor is on so it appears on the right monitor
+        let mouseLocation = NSEvent.mouseLocation
+        let screen = NSScreen.screens.first(where: { NSMouseInRect(mouseLocation, $0.frame, false) })
+                     ?? NSScreen.main
+                     ?? NSScreen.screens[0]
+        let frame = screen.visibleFrame
+
         let w: CGFloat = 520
         let h: CGFloat = 60
-        let x = screen.minX + (screen.width - w) / 2
-        let y = screen.maxY - h - 8
+        let x = frame.minX + (frame.width - w) / 2
+        let y = frame.maxY - h - 8
 
         window = NSPanel(
             contentRect: .init(x: x, y: y, width: w, height: h),
@@ -171,11 +172,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             backing:     .buffered,
             defer:       false
         )
-        window.level              = .floating
+        // One level above .floating so it clears other floating panels
+        window.level              = NSWindow.Level(rawValue: Int(NSWindow.Level.floating.rawValue) + 1)
         window.backgroundColor    = .clear
         window.isOpaque           = false
-        window.hasShadow          = false   // shadow rendered by SwiftUI
-        window.collectionBehavior = [.canJoinAllSpaces, .stationary]
+        window.hasShadow          = false
+        window.collectionBehavior = [.canJoinAllSpaces, .stationary, .fullScreenAuxiliary]
         window.isMovableByWindowBackground = true
 
         window.contentView = NSHostingView(rootView: PillView(
@@ -195,9 +197,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 }
 
 // MARK: - Entry point
+// stdin is read HERE, before app.run(), so the main run loop is never blocked.
+
+let inputData = FileHandle.standardInput.readDataToEndOfFile()
+
+var toolName = "Tool"
+var detail   = ""
+if let p = try? JSONDecoder().decode(HookPayload.self, from: inputData) {
+    toolName = p.toolName
+    detail   = p.toolInput.command ?? p.toolInput.filePath ?? ""
+}
 
 let app      = NSApplication.shared
-let delegate = AppDelegate()
-app.setActivationPolicy(.accessory)   // no Dock icon
+let delegate = AppDelegate(toolName: toolName, detail: detail)
+app.setActivationPolicy(.accessory)
 app.delegate = delegate
 app.run()

@@ -33,9 +33,15 @@ if ! command -v jq &>/dev/null; then
 fi
 
 # --- Compile ---
+# Info.plist is embedded into the binary so macOS treats it as a proper GUI app.
+# Without it, AppKit silently refuses to show windows when launched as a subprocess.
 info "Compiling forge-notify..."
 mkdir -p "$BIN_DIR"
-swiftc "$TOOL_DIR/forge-notify.swift" -o "$BIN_DIR/forge-notify"
+swiftc "$TOOL_DIR/forge-notify.swift" -o "$BIN_DIR/forge-notify" \
+  -Xlinker -sectcreate \
+  -Xlinker __TEXT \
+  -Xlinker __info_plist \
+  -Xlinker "$TOOL_DIR/Info.plist"
 success "Binary installed → $BIN_DIR/forge-notify"
 
 # --- Merge hooks into Claude Code settings ---
