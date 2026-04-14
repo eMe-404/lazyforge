@@ -17,6 +17,28 @@ return {
     },
   },
 
+  -- remove prettier as YAML formatter (it rewrites quotes, adds blank lines)
+  {
+    "stevearc/conform.nvim",
+    opts = {
+      formatters_by_ft = {
+        yaml = {},
+        markdown = {},
+        json = {},
+        jsonc = {},
+        javascript = {},
+        javascriptreact = {},
+        typescript = {},
+        typescriptreact = {},
+        css = {},
+        scss = {},
+        less = {},
+        html = {},
+        graphql = {},
+      },
+    },
+  },
+
   -- bash-language-server + shfmt (no LazyVim extra exists for shell)
   {
     "mason-org/mason.nvim",

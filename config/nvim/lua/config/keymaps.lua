@@ -9,3 +9,18 @@ map("t", "<Esc><Esc>", "<C-\\><C-n>", { desc = "Exit terminal mode" })
 -- Center screen after search jumps
 map("n", "n", "nzzzv", { desc = "Next search result (centered)" })
 map("n", "N", "Nzzzv", { desc = "Prev search result (centered)" })
+
+-- Quick Commit: stage all and commit with a single keymap
+map("n", "<leader>gc", function()
+  local msg = vim.fn.input("Commit Message: ")
+  if msg ~= "" then
+    vim.fn.system("git add -A && git commit -m '" .. msg .. "'")
+    print("\n Committed: " .. msg)
+  end
+end, { desc = "Git Quick Commit All" })
+
+-- Remap <leader>sg: replace Grep with Git Branch Picker
+pcall(vim.keymap.del, "n", "<leader>sg")
+map("n", "<leader>sg", function()
+  Snacks.picker.git_branches()
+end, { desc = "Search Git Branches" })
