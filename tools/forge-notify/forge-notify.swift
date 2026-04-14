@@ -80,6 +80,7 @@ struct PillView: View {
                 }
                 .buttonStyle(.plain)
                 .keyboardShortcut(.return, modifiers: [])
+                .keyboardShortcut(.return, modifiers: [.command])
                 .keyboardShortcut(.escape, modifiers: [])
             }
             .padding(.horizontal, 18)
