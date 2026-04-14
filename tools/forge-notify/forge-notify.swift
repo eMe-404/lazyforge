@@ -1,8 +1,11 @@
 // forge-notify — Dynamic Island-style notification pill for Claude Code
 //
 // Reads a Claude Code Notification hook JSON payload from stdin.
-// Displays a floating pill at the top of the screen and auto-dismisses.
-// Exits 0 always (notifications are informational, not gating).
+// Displays a floating pill with Allow / Deny buttons that send keystrokes
+// to Ghostty so the user can answer Claude Code permission prompts without
+// switching windows.
+//
+// Requires Accessibility permission (System Settings → Privacy → Accessibility).
 //
 // Compile:  see install.sh (requires embedding Info.plist)
 // Install:  ./install.sh
@@ -17,6 +20,28 @@ struct NotificationPayload: Decodable {
     let title:   String?
 }
 
+// MARK: - Keystroke helper
+
+func sendToGhostty(_ key: String, then completion: @escaping () -> Void) {
+    // Activate Ghostty and send a keystroke + Return to answer the prompt.
+    // Runs off the main thread so the pill animates out before the window switches.
+    let script = """
+    tell application "Ghostty" to activate
+    delay 0.12
+    tell application "System Events"
+        keystroke "\(key)"
+        key code 36
+    end tell
+    """
+    DispatchQueue.global(qos: .userInitiated).async {
+        if let s = NSAppleScript(source: script) {
+            var err: NSDictionary?
+            s.executeAndReturnError(&err)
+        }
+        DispatchQueue.main.async { completion() }
+    }
+}
+
 // MARK: - Catppuccin Mocha palette
 
 extension Color {
@@ -25,17 +50,18 @@ extension Color {
     static let moText    = Color(red: 0.804, green: 0.839, blue: 0.957) // #cdd6f4
     static let moMauve   = Color(red: 0.796, green: 0.651, blue: 0.969) // #cba6f7
     static let moGreen   = Color(red: 0.651, green: 0.890, blue: 0.631) // #a6e3a1
-    static let moSubtext = Color(red: 0.651, green: 0.678, blue: 0.784) // #a6adc8
+    static let moRed     = Color(red: 0.953, green: 0.545, blue: 0.659) // #f38ba8
 }
 
 // MARK: - Pill view
 
 struct PillView: View {
-    let message: String
-    let onDismiss: () -> Void
+    let message:  String
+    let onAllow:  () -> Void
+    let onDeny:   () -> Void
 
     @State private var visible  = false
-    @State private var timeLeft = 8
+    @State private var timeLeft = 30
 
     var body: some View {
         ZStack {
@@ -45,7 +71,7 @@ struct PillView: View {
                 .shadow(color: .black.opacity(0.55), radius: 18, y: 6)
 
             HStack(spacing: 12) {
-                // Claude indicator
+                // Claude badge
                 HStack(spacing: 5) {
                     Text("✦")
                         .font(.system(size: 13))
@@ -61,7 +87,7 @@ struct PillView: View {
                     .fill(Color.moSurface)
                     .frame(width: 1, height: 26)
 
-                // Notification message
+                // Message
                 Text(message)
                     .font(.system(size: 11))
                     .foregroundColor(.moText)
@@ -69,19 +95,30 @@ struct PillView: View {
                     .truncationMode(.tail)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
-                // Dismiss
-                Button(action: onDismiss) {
-                    Text("Dismiss")
+                // Deny → sends "n" to terminal
+                Button(action: onDeny) {
+                    Text("Deny")
                         .font(.system(size: 11, weight: .semibold))
-                        .foregroundColor(.moSubtext)
+                        .foregroundColor(.moRed)
                         .padding(.horizontal, 10).padding(.vertical, 5)
-                        .background(Color.moSurface.opacity(0.6))
+                        .background(Color.moRed.opacity(0.13))
+                        .clipShape(Capsule())
+                }
+                .buttonStyle(.plain)
+                .keyboardShortcut(.escape, modifiers: [])
+
+                // Allow → sends "y" to terminal
+                Button(action: onAllow) {
+                    Text("Allow  \(timeLeft)s")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundColor(.moGreen)
+                        .padding(.horizontal, 10).padding(.vertical, 5)
+                        .background(Color.moGreen.opacity(0.13))
                         .clipShape(Capsule())
                 }
                 .buttonStyle(.plain)
                 .keyboardShortcut(.return, modifiers: [])
                 .keyboardShortcut(.return, modifiers: [.command])
-                .keyboardShortcut(.escape, modifiers: [])
             }
             .padding(.horizontal, 18)
         }
@@ -102,8 +139,7 @@ struct PillView: View {
                 timeLeft -= 1
             } else {
                 t.invalidate()
-                withAnimation(.easeOut(duration: 0.3)) { visible = false }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { onDismiss() }
+                onDeny()
             }
         }
     }
@@ -125,7 +161,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }) ?? NSScreen.main ?? NSScreen.screens[0]
         let frame = screen.visibleFrame
 
-        let w: CGFloat = 480
+        let w: CGFloat = 520
         let h: CGFloat = 60
         let x = frame.minX + (frame.width - w) / 2
         let y = frame.maxY - h - 8
@@ -144,8 +180,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         window.isMovableByWindowBackground = true
 
         window.contentView = NSHostingView(rootView: PillView(
-            message:   message,
-            onDismiss: { exit(0) }
+            message: message,
+            onAllow: {
+                sendToGhostty("y") { exit(0) }
+            },
+            onDeny: {
+                sendToGhostty("n") { exit(0) }
+            }
         ))
 
         window.makeKeyAndOrderFront(nil)
@@ -158,11 +199,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 }
 
 // MARK: - Entry point
-// stdin read before app.run() so the main run loop is never blocked.
 
 let inputData = FileHandle.standardInput.readDataToEndOfFile()
 
-var message = "Claude needs your attention"
+var message = "Claude is waiting for your input"
 if let p = try? JSONDecoder().decode(NotificationPayload.self, from: inputData) {
     message = p.message ?? p.title ?? message
 }
