@@ -194,6 +194,7 @@ struct PillView: View {
         .opacity(visible ? 1.0 : 0.0)
         .onAppear {
             withAnimation(.spring(response: 0.38, dampingFraction: 0.68)) { visible = true }
+            NSSound(named: .init("Glass"))?.play()
             startTimer()
         }
     }
