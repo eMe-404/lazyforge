@@ -20,24 +20,41 @@ struct NotificationPayload: Decodable {
     let title:   String?
 }
 
-// MARK: - Keystroke helper
+// MARK: - Keystroke helpers
 
-func sendToGhostty(_ key: String, then completion: @escaping () -> Void) {
-    // Activate Ghostty and send a keystroke + Return to answer the prompt.
-    // Runs off the main thread so the pill animates out before the window switches.
-    let script = """
-    tell application "Ghostty" to activate
-    delay 0.12
-    tell application "System Events"
-        keystroke "\(key)"
-        key code 36
-    end tell
-    """
+// Allow: activate Ghostty (bring to front), then send "y↵".
+func allowInGhostty(then completion: @escaping () -> Void) {
+    // Activate immediately on main thread so the switch feels instant.
+    NSRunningApplication
+        .runningApplications(withBundleIdentifier: "com.mitchellh.ghostty")
+        .first?.activate(options: .activateIgnoringOtherApps)
+
+    DispatchQueue.global(qos: .userInitiated).asyncAfter(deadline: .now() + 0.15) {
+        let script = """
+        tell application "System Events"
+            tell application process "Ghostty"
+                keystroke "y"
+                key code 36
+            end tell
+        end tell
+        """
+        if let s = NSAppleScript(source: script) { var e: NSDictionary?; s.executeAndReturnError(&e) }
+        DispatchQueue.main.async { completion() }
+    }
+}
+
+// Deny: send "n↵" to Ghostty in the background — user stays in current app.
+func denyInGhostty(then completion: @escaping () -> Void) {
     DispatchQueue.global(qos: .userInitiated).async {
-        if let s = NSAppleScript(source: script) {
-            var err: NSDictionary?
-            s.executeAndReturnError(&err)
-        }
+        let script = """
+        tell application "System Events"
+            tell application process "Ghostty"
+                keystroke "n"
+                key code 36
+            end tell
+        end tell
+        """
+        if let s = NSAppleScript(source: script) { var e: NSDictionary?; s.executeAndReturnError(&e) }
         DispatchQueue.main.async { completion() }
     }
 }
@@ -181,12 +198,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         window.contentView = NSHostingView(rootView: PillView(
             message: message,
-            onAllow: {
-                sendToGhostty("y") { exit(0) }
-            },
-            onDeny: {
-                sendToGhostty("n") { exit(0) }
-            }
+            onAllow: { allowInGhostty { exit(0) } },
+            onDeny:  { denyInGhostty  { exit(0) } }
         ))
 
         window.makeKeyAndOrderFront(nil)
