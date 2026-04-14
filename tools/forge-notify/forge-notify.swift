@@ -1,8 +1,8 @@
 // forge-notify — Dynamic Island-style notification pill for Claude Code
 //
 // Reads a Claude Code Notification hook JSON payload from stdin.
-// Allow (click only) → activates the exact Ghostty window that was
-//   frontmost before the pill appeared, sends y↵.
+// Allow (click only) → activates the exact Ghostty window Claude is running in,
+//   sends y↵. Window is identified by TTY (primary) or AX enumeration (fallback).
 // Allow (Return / Cmd+Enter) → sends y↵ silently, stays in current app.
 // Deny (click or Escape) → sends n↵ silently, stays in current app.
 //
@@ -22,20 +22,98 @@ struct NotificationPayload: Decodable {
     let title:   String?
 }
 
-// MARK: - Accessibility + AppleScript helpers
+// MARK: - Terminal identification
 
-// Send y↵ to Ghostty and raise the exact tab that had focus before the pill appeared.
-// Uses the AX element captured at launch (tab-level, not just window-level).
-func allowInGhostty(axWindow: AXUIElement?, then done: @escaping () -> Void) {
+// Returns the path of this process's controlling terminal (e.g. "/dev/ttys003").
+// Opens /dev/tty directly so the result is correct even when stdin/stdout are pipes
+// (the hook system pipes JSON to stdin, so ttyname(STDIN_FILENO) would return nil).
+func ourControllingTTYPath() -> String? {
+    let fd = Darwin.open("/dev/tty", O_RDONLY | O_NOCTTY)
+    guard fd >= 0 else { return nil }
+    defer { Darwin.close(fd) }
+    guard let name = ttyname(fd) else { return nil }
+    return String(cString: name)
+}
+
+// MARK: - Ghostty window targeting
+
+// PRIMARY: Find the Ghostty window whose tty matches our controlling terminal.
+// Ghostty (like Terminal.app / iTerm2) exposes a `tty` property on its window
+// objects. The `try` block silently swallows the error if Ghostty's AppleScript
+// dictionary doesn't expose this property.
+func ghosttyWindowIDForTTY(_ tty: String) -> Int? {
+    let script = """
+    tell application "Ghostty"
+        repeat with w in windows
+            try
+                if tty of w is "\(tty)" then return id of w
+            end try
+        end repeat
+    end tell
+    """
+    guard let s = NSAppleScript(source: script) else { return nil }
+    var err: NSDictionary?
+    let result = s.executeAndReturnError(&err)
+    guard err == nil else { return nil }
+    let v = result.int32Value
+    return v > 0 ? Int(v) : nil
+}
+
+// FALLBACK: Find the first Ghostty AX window that is NOT currently focused.
+// Correct for the common 2-window case: user is in Window 2 (focused); Claude
+// is in Window 1 (the only non-focused window).
+func ghosttyNonFocusedAXWindow() -> AXUIElement? {
+    let apps = NSRunningApplication.runningApplications(withBundleIdentifier: "com.mitchellh.ghostty")
+    guard let app = apps.first else { return nil }
+    let axApp = AXUIElementCreateApplication(app.processIdentifier)
+
+    var windowsRef: CFTypeRef?
+    guard AXUIElementCopyAttributeValue(axApp, kAXWindowsAttribute as CFString, &windowsRef) == .success,
+          let windows = windowsRef as? [AXUIElement], windows.count > 1 else { return nil }
+
+    var focusedRef: CFTypeRef?
+    AXUIElementCopyAttributeValue(axApp, kAXFocusedWindowAttribute as CFString, &focusedRef)
+
+    for window in windows {
+        if let f = focusedRef, CFEqual(window, f) { continue }
+        return window
+    }
+    return nil
+}
+
+// MARK: - Action helpers
+
+// Send y↵ to Ghostty and bring Claude's window to front.
+// Strategy: TTY-based AppleScript (precise) → AX non-focused window (fallback).
+func allowInGhostty(tty: String?, then done: @escaping () -> Void) {
     DispatchQueue.global(qos: .userInitiated).async {
-        // Raise the specific tab via Accessibility API.
-        if let win = axWindow {
-            AXUIElementPerformAction(win, kAXRaiseAction as CFString)
+        var raised = false
+
+        // PRIMARY: match by TTY — finds the exact window regardless of focus order.
+        if let tty = tty, let wid = ghosttyWindowIDForTTY(tty) {
+            let raiseScript = """
+            tell application "Ghostty"
+                set index of (first window whose id is \(wid)) to 1
+                activate
+            end tell
+            """
+            if let s = NSAppleScript(source: raiseScript) {
+                var e: NSDictionary?
+                s.executeAndReturnError(&e)
+                if e == nil { raised = true }
+            }
         }
-        // Activate the Ghostty process so the raised tab comes to the foreground.
-        NSRunningApplication
-            .runningApplications(withBundleIdentifier: "com.mitchellh.ghostty")
-            .first?.activate(options: .activateIgnoringOtherApps)
+
+        // FALLBACK: AX non-focused window (correct for the 2-window case).
+        if !raised {
+            if let win = ghosttyNonFocusedAXWindow() {
+                AXUIElementPerformAction(win, kAXRaiseAction as CFString)
+            }
+            NSRunningApplication
+                .runningApplications(withBundleIdentifier: "com.mitchellh.ghostty")
+                .first?.activate(options: .activateIgnoringOtherApps)
+        }
+
         Thread.sleep(forTimeInterval: 0.15)
         let keystroke = """
         tell application "System Events"
@@ -51,7 +129,6 @@ func allowInGhostty(axWindow: AXUIElement?, then done: @escaping () -> Void) {
 }
 
 // Send y↵ to Ghostty in the background — user stays in current app.
-// Used for keyboard shortcut (Return / Cmd+Enter).
 func allowSilently(then done: @escaping () -> Void) {
     DispatchQueue.global(qos: .userInitiated).async {
         let script = """
@@ -81,20 +158,6 @@ func denyInGhostty(then done: @escaping () -> Void) {
         if let s = NSAppleScript(source: script) { var e: NSDictionary?; s.executeAndReturnError(&e) }
         DispatchQueue.main.async { done() }
     }
-}
-
-// Capture the AX element for Ghostty's focused tab *before* forge-notify changes focus.
-// kAXFocusedWindowAttribute gives the specific tab element — not just the window container —
-// so kAXRaiseAction later lands on the exact tab Claude was running in.
-func ghosttyFocusedAXWindow() -> AXUIElement? {
-    let apps = NSRunningApplication.runningApplications(withBundleIdentifier: "com.mitchellh.ghostty")
-    guard let app = apps.first else { return nil }
-    let axApp = AXUIElementCreateApplication(app.processIdentifier)
-    var value: CFTypeRef?
-    guard AXUIElementCopyAttributeValue(axApp, kAXFocusedWindowAttribute as CFString, &value) == .success,
-          let v = value else { return nil }
-    // swiftlint:disable:next force_cast
-    return (v as! AXUIElement)
 }
 
 // MARK: - Catppuccin Mocha palette
@@ -191,7 +254,7 @@ struct PillView: View {
     private func startTimer() {
         Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { t in
             if timeLeft > 1 { timeLeft -= 1 }
-            else { t.invalidate(); onDeny() }
+            else { t.invalidate(); exit(0) }   // timeout: dismiss silently, no keystroke
         }
     }
 }
@@ -200,13 +263,13 @@ struct PillView: View {
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     var window: NSWindow!
-    let message: String
-    let ghosttyAXWindow: AXUIElement?   // captured before we steal focus
-    var keyMonitor: Any?                // global keyboard monitor (no app activation needed)
+    let message:  String
+    let savedTTY: String?   // controlling terminal inherited from Claude Code
+    var keyMonitor: Any?    // global keyboard monitor (no app activation needed)
 
-    init(message: String, ghosttyAXWindow: AXUIElement?) {
-        self.message        = message
-        self.ghosttyAXWindow = ghosttyAXWindow
+    init(message: String, savedTTY: String?) {
+        self.message  = message
+        self.savedTTY = savedTTY
     }
 
     func applicationDidFinishLaunching(_: Notification) {
@@ -235,10 +298,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         window.collectionBehavior = [.canJoinAllSpaces, .stationary, .fullScreenAuxiliary]
         window.isMovableByWindowBackground = true
 
-        let axWin = ghosttyAXWindow
+        let tty = savedTTY
         window.contentView = NSHostingView(rootView: PillView(
             message:       message,
-            onAllowClick:  { allowInGhostty(axWindow: axWin) { exit(0) } },
+            onAllowClick:  { allowInGhostty(tty: tty) { exit(0) } },
             onAllowSilent: { allowSilently { exit(0) } },
             onDeny:        { denyInGhostty  { exit(0) } }
         ))
@@ -273,13 +336,13 @@ if let p = try? JSONDecoder().decode(NotificationPayload.self, from: inputData) 
     message = p.message ?? p.title ?? message
 }
 
-// Capture the AX element for Ghostty's focused tab *before* forge-notify changes anything.
-// kAXFocusedWindowAttribute is tab-level: it identifies the exact tab Claude is running in,
-// not just the container window (which all tabs share).
-let savedAXWindow = ghosttyFocusedAXWindow()
+// Capture the controlling terminal TTY inherited from Claude Code.
+// This identifies Claude's Ghostty window regardless of which window the user
+// last focused — even if they switched to another Ghostty window or the browser.
+let savedTTY = ourControllingTTYPath()
 
 let app      = NSApplication.shared
-let delegate = AppDelegate(message: message, ghosttyAXWindow: savedAXWindow)
+let delegate = AppDelegate(message: message, savedTTY: savedTTY)
 app.setActivationPolicy(.accessory)
 app.delegate = delegate
 app.run()
