@@ -1,6 +1,6 @@
 #!/bin/zsh
 # forge-notify install
-# Compiles the Swift binary and wires up Claude Code PreToolUse hooks.
+# Compiles the Swift binary and wires up the Claude Code Notification hook.
 # Run independently — not called by the root install.sh.
 # Usage: ./tools/forge-notify/install.sh
 
@@ -33,8 +33,7 @@ if ! command -v jq &>/dev/null; then
 fi
 
 # --- Compile ---
-# Info.plist is embedded into the binary so macOS treats it as a proper GUI app.
-# Without it, AppKit silently refuses to show windows when launched as a subprocess.
+# Info.plist is embedded so macOS grants window-server access to the subprocess.
 info "Compiling forge-notify..."
 mkdir -p "$BIN_DIR"
 swiftc "$TOOL_DIR/forge-notify.swift" -o "$BIN_DIR/forge-notify" \
@@ -44,28 +43,27 @@ swiftc "$TOOL_DIR/forge-notify.swift" -o "$BIN_DIR/forge-notify" \
   -Xlinker "$TOOL_DIR/Info.plist"
 success "Binary installed → $BIN_DIR/forge-notify"
 
-# --- Merge hooks into Claude Code settings ---
-# Appends forge-notify PreToolUse entries without clobbering existing hooks.
-info "Installing Claude Code hooks..."
+# --- Merge Notification hook into Claude Code settings ---
+# Replaces any existing Notification array so the pill is the sole handler.
+info "Installing Claude Code Notification hook..."
 mkdir -p "$(dirname "$CLAUDE_SETTINGS")"
 
 if [ -f "$CLAUDE_SETTINGS" ]; then
   jq -s '
     (.[0] // {}) as $s |
-    (.[1].hooks.PreToolUse // []) as $new |
-    $s | .hooks.PreToolUse = ((.hooks.PreToolUse // []) + $new)
+    (.[1].hooks.Notification) as $new |
+    $s | .hooks.Notification = $new
   ' "$CLAUDE_SETTINGS" "$TOOL_DIR/hooks.json" > /tmp/fn_merged.json \
     && mv /tmp/fn_merged.json "$CLAUDE_SETTINGS"
 else
   cp "$TOOL_DIR/hooks.json" "$CLAUDE_SETTINGS"
 fi
 
-success "Hooks installed → $CLAUDE_SETTINGS"
+success "Hook installed → $CLAUDE_SETTINGS"
 echo ""
-success "Done. Claude Code will now show a pill overlay for Bash / Edit / Write approvals."
+success "Done. Claude Code will show a pill when it needs your attention."
 echo ""
-echo "  Return    → Allow"
-echo "  Escape    → Deny"
-echo "  (auto-denies after 30s)"
+echo "  Dismiss / Return / Escape  → close pill"
+echo "  Auto-dismisses after 8s"
 echo ""
 echo "  To uninstall: ./tools/forge-notify/uninstall.sh"

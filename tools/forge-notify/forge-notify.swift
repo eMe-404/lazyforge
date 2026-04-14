@@ -1,8 +1,8 @@
-// forge-notify — Dynamic Island-style permission overlay for Claude Code
+// forge-notify — Dynamic Island-style notification pill for Claude Code
 //
-// Reads a Claude Code PreToolUse JSON payload from stdin.
-// Displays a floating pill at the top of the screen with Allow / Deny buttons.
-// Exits 0 (allow) or 2 (deny).
+// Reads a Claude Code Notification hook JSON payload from stdin.
+// Displays a floating pill at the top of the screen and auto-dismisses.
+// Exits 0 always (notifications are informational, not gating).
 //
 // Compile:  see install.sh (requires embedding Info.plist)
 // Install:  ./install.sh
@@ -12,22 +12,9 @@ import SwiftUI
 
 // MARK: - Input model
 
-struct HookPayload: Decodable {
-    let toolName: String
-    let toolInput: ToolInput
-    enum CodingKeys: String, CodingKey {
-        case toolName = "tool_name"
-        case toolInput = "tool_input"
-    }
-}
-
-struct ToolInput: Decodable {
-    let command:  String?
-    let filePath: String?
-    enum CodingKeys: String, CodingKey {
-        case command
-        case filePath = "file_path"
-    }
+struct NotificationPayload: Decodable {
+    let message: String?
+    let title:   String?
 }
 
 // MARK: - Catppuccin Mocha palette
@@ -38,31 +25,17 @@ extension Color {
     static let moText    = Color(red: 0.804, green: 0.839, blue: 0.957) // #cdd6f4
     static let moMauve   = Color(red: 0.796, green: 0.651, blue: 0.969) // #cba6f7
     static let moGreen   = Color(red: 0.651, green: 0.890, blue: 0.631) // #a6e3a1
-    static let moRed     = Color(red: 0.953, green: 0.545, blue: 0.659) // #f38ba8
+    static let moSubtext = Color(red: 0.651, green: 0.678, blue: 0.784) // #a6adc8
 }
 
 // MARK: - Pill view
 
 struct PillView: View {
-    let toolName: String
-    let detail:   String
-    let onAllow:  () -> Void
-    let onDeny:   () -> Void
+    let message: String
+    let onDismiss: () -> Void
 
-    @State private var timeLeft = 30
     @State private var visible  = false
-
-    private var icon: String {
-        switch toolName {
-        case "Bash":   return "⚡"
-        case "Edit":   return "✏️"
-        case "Write":  return "📝"
-        case "Read":   return "👁"
-        case "Glob":   return "🔍"
-        case "Grep":   return "🔎"
-        default:       return "🔧"
-        }
-    }
+    @State private var timeLeft = 8
 
     var body: some View {
         ZStack {
@@ -72,9 +45,12 @@ struct PillView: View {
                 .shadow(color: .black.opacity(0.55), radius: 18, y: 6)
 
             HStack(spacing: 12) {
+                // Claude indicator
                 HStack(spacing: 5) {
-                    Text(icon).font(.system(size: 15))
-                    Text(toolName.uppercased())
+                    Text("✦")
+                        .font(.system(size: 13))
+                        .foregroundColor(.moMauve)
+                    Text("CLAUDE")
                         .font(.system(size: 9, weight: .heavy, design: .monospaced))
                         .foregroundColor(.moMauve)
                         .tracking(1.2)
@@ -85,34 +61,26 @@ struct PillView: View {
                     .fill(Color.moSurface)
                     .frame(width: 1, height: 26)
 
-                Text(detail.isEmpty ? "—" : detail)
-                    .font(.system(size: 11, design: .monospaced))
+                // Notification message
+                Text(message)
+                    .font(.system(size: 11))
                     .foregroundColor(.moText)
                     .lineLimit(1)
-                    .truncationMode(.middle)
+                    .truncationMode(.tail)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
-                Button(action: onDeny) {
-                    Text("Deny")
+                // Dismiss
+                Button(action: onDismiss) {
+                    Text("Dismiss")
                         .font(.system(size: 11, weight: .semibold))
-                        .foregroundColor(.moRed)
+                        .foregroundColor(.moSubtext)
                         .padding(.horizontal, 10).padding(.vertical, 5)
-                        .background(Color.moRed.opacity(0.13))
-                        .clipShape(Capsule())
-                }
-                .buttonStyle(.plain)
-                .keyboardShortcut(.escape, modifiers: [])
-
-                Button(action: onAllow) {
-                    Text("Allow  \(timeLeft)s")
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundColor(.moGreen)
-                        .padding(.horizontal, 10).padding(.vertical, 5)
-                        .background(Color.moGreen.opacity(0.13))
+                        .background(Color.moSurface.opacity(0.6))
                         .clipShape(Capsule())
                 }
                 .buttonStyle(.plain)
                 .keyboardShortcut(.return, modifiers: [])
+                .keyboardShortcut(.escape, modifiers: [])
             }
             .padding(.horizontal, 18)
         }
@@ -133,7 +101,8 @@ struct PillView: View {
                 timeLeft -= 1
             } else {
                 t.invalidate()
-                onDeny()
+                withAnimation(.easeOut(duration: 0.3)) { visible = false }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { onDismiss() }
             }
         }
     }
@@ -143,25 +112,19 @@ struct PillView: View {
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     var window: NSWindow!
-    let toolName: String
-    let detail: String
+    let message: String
 
-    init(toolName: String, detail: String) {
-        self.toolName = toolName
-        self.detail   = detail
+    init(message: String) {
+        self.message = message
     }
 
     func applicationDidFinishLaunching(_: Notification) {
-        // No blocking calls here — stdin was already read before app.run()
-
-        // Use the screen the mouse cursor is on so it appears on the right monitor
-        let mouseLocation = NSEvent.mouseLocation
-        let screen = NSScreen.screens.first(where: { NSMouseInRect(mouseLocation, $0.frame, false) })
-                     ?? NSScreen.main
-                     ?? NSScreen.screens[0]
+        let screen = NSScreen.screens.first(where: {
+            NSMouseInRect(NSEvent.mouseLocation, $0.frame, false)
+        }) ?? NSScreen.main ?? NSScreen.screens[0]
         let frame = screen.visibleFrame
 
-        let w: CGFloat = 520
+        let w: CGFloat = 480
         let h: CGFloat = 60
         let x = frame.minX + (frame.width - w) / 2
         let y = frame.maxY - h - 8
@@ -172,7 +135,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             backing:     .buffered,
             defer:       false
         )
-        // One level above .floating so it clears other floating panels
         window.level              = NSWindow.Level(rawValue: Int(NSWindow.Level.floating.rawValue) + 1)
         window.backgroundColor    = .clear
         window.isOpaque           = false
@@ -181,10 +143,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         window.isMovableByWindowBackground = true
 
         window.contentView = NSHostingView(rootView: PillView(
-            toolName: toolName,
-            detail:   String(detail.prefix(80)),
-            onAllow:  { exit(0) },
-            onDeny:   { exit(2) }
+            message:   message,
+            onDismiss: { exit(0) }
         ))
 
         window.makeKeyAndOrderFront(nil)
@@ -197,19 +157,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 }
 
 // MARK: - Entry point
-// stdin is read HERE, before app.run(), so the main run loop is never blocked.
+// stdin read before app.run() so the main run loop is never blocked.
 
 let inputData = FileHandle.standardInput.readDataToEndOfFile()
 
-var toolName = "Tool"
-var detail   = ""
-if let p = try? JSONDecoder().decode(HookPayload.self, from: inputData) {
-    toolName = p.toolName
-    detail   = p.toolInput.command ?? p.toolInput.filePath ?? ""
+var message = "Claude needs your attention"
+if let p = try? JSONDecoder().decode(NotificationPayload.self, from: inputData) {
+    message = p.message ?? p.title ?? message
 }
 
 let app      = NSApplication.shared
-let delegate = AppDelegate(toolName: toolName, detail: detail)
+let delegate = AppDelegate(message: message)
 app.setActivationPolicy(.accessory)
 app.delegate = delegate
 app.run()

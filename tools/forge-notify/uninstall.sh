@@ -1,6 +1,6 @@
 #!/bin/zsh
 # forge-notify uninstall
-# Removes the binary and its Claude Code hooks.
+# Removes the binary and its Claude Code Notification hook.
 # Usage: ./tools/forge-notify/uninstall.sh
 
 set -e
@@ -19,15 +19,15 @@ info "Removing binary..."
 rm -f "$HOME/.local/bin/forge-notify"
 success "Binary removed"
 
-# --- Remove hooks ---
+# --- Remove Notification hook ---
 if [ -f "$CLAUDE_SETTINGS" ]; then
-  info "Removing hooks from Claude Code settings..."
-  jq '.hooks.PreToolUse = [
-    .hooks.PreToolUse[]?
+  info "Removing Notification hook from Claude Code settings..."
+  jq '.hooks.Notification = [
+    .hooks.Notification[]?
     | select(.hooks | map(.command) | any(test("forge-notify")) | not)
   ]' "$CLAUDE_SETTINGS" > /tmp/fn_clean.json \
     && mv /tmp/fn_clean.json "$CLAUDE_SETTINGS"
-  success "Hooks removed"
+  success "Hook removed"
 fi
 
 echo ""
