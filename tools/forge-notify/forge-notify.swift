@@ -1,9 +1,10 @@
 // forge-notify — Dynamic Island-style notification pill for Claude Code
 //
 // Reads a Claude Code Notification hook JSON payload from stdin.
-// Displays a floating pill with Allow / Deny buttons that send keystrokes
-// to Ghostty so the user can answer Claude Code permission prompts without
-// switching windows.
+// Allow (click only) → activates the exact Ghostty window that was
+//   frontmost before the pill appeared, sends y↵.
+// Allow (Return / Cmd+Enter) → sends y↵ silently, stays in current app.
+// Deny (click or Escape) → sends n↵ silently, stays in current app.
 //
 // Requires Accessibility permission (System Settings → Privacy → Accessibility).
 //
@@ -20,16 +21,47 @@ struct NotificationPayload: Decodable {
     let title:   String?
 }
 
-// MARK: - Keystroke helpers
+// MARK: - AppleScript helpers
 
-// Allow: activate Ghostty (bring to front), then send "y↵".
-func allowInGhostty(then completion: @escaping () -> Void) {
-    // Activate immediately on main thread so the switch feels instant.
-    NSRunningApplication
-        .runningApplications(withBundleIdentifier: "com.mitchellh.ghostty")
-        .first?.activate(options: .activateIgnoringOtherApps)
+// Send y↵ to Ghostty and bring the given window to front.
+// Used when the user explicitly clicks Allow — redirects to the terminal.
+func allowInGhostty(windowID: Int?, then done: @escaping () -> Void) {
+    let raiseScript: String
+    if let wid = windowID {
+        // Raise the exact window that had focus before the pill appeared.
+        raiseScript = """
+        tell application "Ghostty"
+            set index of (first window whose id is \(wid)) to 1
+            activate
+        end tell
+        """
+    } else {
+        raiseScript = "tell application \"Ghostty\" to activate"
+    }
 
-    DispatchQueue.global(qos: .userInitiated).asyncAfter(deadline: .now() + 0.15) {
+    DispatchQueue.global(qos: .userInitiated).async {
+        if let s = NSAppleScript(source: raiseScript) {
+            var e: NSDictionary?
+            s.executeAndReturnError(&e)
+        }
+        Thread.sleep(forTimeInterval: 0.15)
+        let keystroke = """
+        tell application "System Events"
+            tell application process "Ghostty"
+                keystroke "y"
+                key code 36
+            end tell
+        end tell
+        """
+        if let s = NSAppleScript(source: keystroke) { var e: NSDictionary?; s.executeAndReturnError(&e) }
+        DispatchQueue.main.async { done() }
+    }
+}
+
+// Send y↵ to Ghostty in the background — user stays in current app.
+// Used for keyboard shortcut (Return / Cmd+Enter).
+func allowSilently(then done: @escaping () -> Void) {
+    DispatchQueue.global(qos: .userInitiated).async {
         let script = """
         tell application "System Events"
             tell application process "Ghostty"
@@ -39,12 +71,12 @@ func allowInGhostty(then completion: @escaping () -> Void) {
         end tell
         """
         if let s = NSAppleScript(source: script) { var e: NSDictionary?; s.executeAndReturnError(&e) }
-        DispatchQueue.main.async { completion() }
+        DispatchQueue.main.async { done() }
     }
 }
 
-// Deny: send "n↵" to Ghostty in the background — user stays in current app.
-func denyInGhostty(then completion: @escaping () -> Void) {
+// Send n↵ to Ghostty in the background — user stays in current app.
+func denyInGhostty(then done: @escaping () -> Void) {
     DispatchQueue.global(qos: .userInitiated).async {
         let script = """
         tell application "System Events"
@@ -55,27 +87,45 @@ func denyInGhostty(then completion: @escaping () -> Void) {
         end tell
         """
         if let s = NSAppleScript(source: script) { var e: NSDictionary?; s.executeAndReturnError(&e) }
-        DispatchQueue.main.async { completion() }
+        DispatchQueue.main.async { done() }
     }
+}
+
+// Query Ghostty for its currently-frontmost window ID *before* we steal focus.
+func ghosttyFrontWindowID() -> Int? {
+    let script = """
+    tell application "Ghostty"
+        if (count of windows) > 0 then
+            return id of front window
+        end if
+    end tell
+    """
+    guard let s = NSAppleScript(source: script) else { return nil }
+    var err: NSDictionary?
+    let result = s.executeAndReturnError(&err)
+    guard err == nil else { return nil }
+    let v = result.int32Value
+    return v > 0 ? Int(v) : nil
 }
 
 // MARK: - Catppuccin Mocha palette
 
 extension Color {
-    static let moBase    = Color(red: 0.118, green: 0.118, blue: 0.180) // #1e1e2e
-    static let moSurface = Color(red: 0.192, green: 0.196, blue: 0.267) // #313244
-    static let moText    = Color(red: 0.804, green: 0.839, blue: 0.957) // #cdd6f4
-    static let moMauve   = Color(red: 0.796, green: 0.651, blue: 0.969) // #cba6f7
-    static let moGreen   = Color(red: 0.651, green: 0.890, blue: 0.631) // #a6e3a1
-    static let moRed     = Color(red: 0.953, green: 0.545, blue: 0.659) // #f38ba8
+    static let moBase    = Color(red: 0.118, green: 0.118, blue: 0.180)
+    static let moSurface = Color(red: 0.192, green: 0.196, blue: 0.267)
+    static let moText    = Color(red: 0.804, green: 0.839, blue: 0.957)
+    static let moMauve   = Color(red: 0.796, green: 0.651, blue: 0.969)
+    static let moGreen   = Color(red: 0.651, green: 0.890, blue: 0.631)
+    static let moRed     = Color(red: 0.953, green: 0.545, blue: 0.659)
 }
 
 // MARK: - Pill view
 
 struct PillView: View {
-    let message:  String
-    let onAllow:  () -> Void
-    let onDeny:   () -> Void
+    let message:        String
+    let onAllowClick:   () -> Void   // click: redirect to Ghostty
+    let onAllowSilent:  () -> Void   // keyboard: stay in current app
+    let onDeny:         () -> Void   // click or Escape: stay in current app
 
     @State private var visible  = false
     @State private var timeLeft = 30
@@ -88,11 +138,8 @@ struct PillView: View {
                 .shadow(color: .black.opacity(0.55), radius: 18, y: 6)
 
             HStack(spacing: 12) {
-                // Claude badge
                 HStack(spacing: 5) {
-                    Text("✦")
-                        .font(.system(size: 13))
-                        .foregroundColor(.moMauve)
+                    Text("✦").font(.system(size: 13)).foregroundColor(.moMauve)
                     Text("CLAUDE")
                         .font(.system(size: 9, weight: .heavy, design: .monospaced))
                         .foregroundColor(.moMauve)
@@ -100,11 +147,8 @@ struct PillView: View {
                 }
                 .frame(width: 76, alignment: .leading)
 
-                Rectangle()
-                    .fill(Color.moSurface)
-                    .frame(width: 1, height: 26)
+                Rectangle().fill(Color.moSurface).frame(width: 1, height: 26)
 
-                // Message
                 Text(message)
                     .font(.system(size: 11))
                     .foregroundColor(.moText)
@@ -112,7 +156,7 @@ struct PillView: View {
                     .truncationMode(.tail)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
-                // Deny → sends "n" to terminal
+                // Deny — click or Escape, stays in current app
                 Button(action: onDeny) {
                     Text("Deny")
                         .font(.system(size: 11, weight: .semibold))
@@ -124,8 +168,8 @@ struct PillView: View {
                 .buttonStyle(.plain)
                 .keyboardShortcut(.escape, modifiers: [])
 
-                // Allow → sends "y" to terminal
-                Button(action: onAllow) {
+                // Allow — click only (redirects to Ghostty)
+                Button(action: onAllowClick) {
                     Text("Allow  \(timeLeft)s")
                         .font(.system(size: 11, weight: .semibold))
                         .foregroundColor(.moGreen)
@@ -134,30 +178,30 @@ struct PillView: View {
                         .clipShape(Capsule())
                 }
                 .buttonStyle(.plain)
-                .keyboardShortcut(.return, modifiers: [])
-                .keyboardShortcut(.return, modifiers: [.command])
+                // No .keyboardShortcut here — keyboard handled by hidden button below
             }
             .padding(.horizontal, 18)
+
+            // Hidden button: Return / Cmd+Enter → allow silently (no redirect)
+            Button(action: onAllowSilent) { EmptyView() }
+                .frame(width: 0, height: 0)
+                .opacity(0)
+                .keyboardShortcut(.return, modifiers: [])
+                .keyboardShortcut(.return, modifiers: [.command])
         }
         .frame(height: 60)
         .scaleEffect(visible ? 1.0 : 0.82)
         .opacity(visible ? 1.0 : 0.0)
         .onAppear {
-            withAnimation(.spring(response: 0.38, dampingFraction: 0.68)) {
-                visible = true
-            }
+            withAnimation(.spring(response: 0.38, dampingFraction: 0.68)) { visible = true }
             startTimer()
         }
     }
 
     private func startTimer() {
         Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { t in
-            if timeLeft > 1 {
-                timeLeft -= 1
-            } else {
-                t.invalidate()
-                onDeny()
-            }
+            if timeLeft > 1 { timeLeft -= 1 }
+            else { t.invalidate(); onDeny() }
         }
     }
 }
@@ -167,9 +211,11 @@ struct PillView: View {
 class AppDelegate: NSObject, NSApplicationDelegate {
     var window: NSWindow!
     let message: String
+    let ghosttyWindowID: Int?   // captured before we steal focus
 
-    init(message: String) {
-        self.message = message
+    init(message: String, ghosttyWindowID: Int?) {
+        self.message        = message
+        self.ghosttyWindowID = ghosttyWindowID
     }
 
     func applicationDidFinishLaunching(_: Notification) {
@@ -196,23 +242,23 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         window.collectionBehavior = [.canJoinAllSpaces, .stationary, .fullScreenAuxiliary]
         window.isMovableByWindowBackground = true
 
+        let wid = ghosttyWindowID
         window.contentView = NSHostingView(rootView: PillView(
-            message: message,
-            onAllow: { allowInGhostty { exit(0) } },
-            onDeny:  { denyInGhostty  { exit(0) } }
+            message:       message,
+            onAllowClick:  { allowInGhostty(windowID: wid) { exit(0) } },
+            onAllowSilent: { allowSilently { exit(0) } },
+            onDeny:        { denyInGhostty  { exit(0) } }
         ))
 
         window.makeKeyAndOrderFront(nil)
-        if #available(macOS 14.0, *) {
-            NSApp.activate()
-        } else {
-            NSApp.activate(ignoringOtherApps: true)
-        }
+        if #available(macOS 14.0, *) { NSApp.activate() }
+        else { NSApp.activate(ignoringOtherApps: true) }
     }
 }
 
 // MARK: - Entry point
 
+// Read stdin before app.run() — never blocks the main run loop.
 let inputData = FileHandle.standardInput.readDataToEndOfFile()
 
 var message = "Claude is waiting for your input"
@@ -220,8 +266,12 @@ if let p = try? JSONDecoder().decode(NotificationPayload.self, from: inputData) 
     message = p.message ?? p.title ?? message
 }
 
+// Capture the frontmost Ghostty window ID *before* we steal focus.
+// This is the exact tab/window the user was in when Claude notified them.
+let savedWindowID = ghosttyFrontWindowID()
+
 let app      = NSApplication.shared
-let delegate = AppDelegate(message: message)
+let delegate = AppDelegate(message: message, ghosttyWindowID: savedWindowID)
 app.setActivationPolicy(.accessory)
 app.delegate = delegate
 app.run()
