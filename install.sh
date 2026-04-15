@@ -135,10 +135,23 @@ SKILLS_DEST="$HOME/.claude/skills"
 mkdir -p "$SKILLS_DEST"
 for skill_dir in "$SKILLS_SRC"/*/; do
   skill_name=$(basename "$skill_dir")
-  mkdir -p "$SKILLS_DEST/$skill_name"
-  cp "$skill_dir/SKILL.md" "$SKILLS_DEST/$skill_name/SKILL.md"
+  ln -sfn "$skill_dir" "$SKILLS_DEST/$skill_name"
 done
-success "Claude Code skills installed (~/.claude/skills/)"
+success "Claude Code skills linked (~/.claude/skills/)"
+
+# --- OpenCode skills (shares same SKILL.md files) ---
+if command -v opencode &>/dev/null; then
+  info "OpenCode detected — linking skills to ~/.config/opencode/skills/..."
+  OC_SKILLS_DEST="${XDG_CONFIG_HOME:-$HOME/.config}/opencode/skills"
+  mkdir -p "$OC_SKILLS_DEST"
+  for skill_dir in "$SKILLS_SRC"/*/; do
+    skill_name=$(basename "$skill_dir")
+    ln -sfn "$skill_dir" "$OC_SKILLS_DEST/$skill_name"
+  done
+  success "OpenCode skills linked (~/.config/opencode/skills/)"
+else
+  info "opencode not found — skipping OpenCode skills (re-run install.sh after installing opencode)"
+fi
 
 # --- Claude Code global hooks ---
 info "Applying Claude Code hooks..."

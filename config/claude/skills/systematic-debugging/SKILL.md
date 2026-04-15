@@ -1,3 +1,9 @@
+---
+name: systematic-debugging
+description: Four-phase debugging methodology focused on root cause analysis before attempting any fix
+compatibility: opencode
+---
+
 # Systematic Debugging Guide
 
 This document establishes a four-phase methodology for addressing technical issues through root cause analysis rather than symptom-focused quick fixes.
