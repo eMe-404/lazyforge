@@ -488,10 +488,6 @@ struct ApprovalPillView: View {
             }
             .padding(.horizontal, 20)
 
-            Button(action: onAllowSilent) { EmptyView() }
-                .frame(width: 0, height: 0).opacity(0)
-                .keyboardShortcut(.return, modifiers: [])
-                .keyboardShortcut(.return, modifiers: [.command])
         }
         .frame(height: 72)
         .scaleEffect(visible ? 1.0 : 0.82)
@@ -581,6 +577,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var savedTerminalID:   String?
     var savedTerminalName: String?
     var keyMonitor:        Any?
+    var pillIsApproval:    Bool = false
 
     init(message: String, savedTTY: String?, savedSpaceID: CGSSpaceID?, savedCWD: String) {
         self.message      = message
@@ -638,6 +635,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
         fnLog("appLaunched: isApproval=\(isApproval) message=\(message)")
 
+        pillIsApproval = isApproval
+
         if isApproval {
             window.contentView = NSHostingView(rootView: ApprovalPillView(
                 message:       displayMessage,
@@ -646,20 +645,27 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 onAllowSilent: { allowSilently(tty: tty, termID: tid, spaceID: sid)  { exit(0) } },
                 onDeny:        { denyInGhostty(tty: tty, termID: tid, spaceID: sid)  { exit(0) } }
             ))
-            // Return/Cmd+Enter → allow silently from keyboard
-            keyMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
-                guard let self = self else { return }
-                if event.keyCode == 36 {
-                    if let m = self.keyMonitor { NSEvent.removeMonitor(m); self.keyMonitor = nil }
-                    allowSilently(tty: self.savedTTY, termID: self.savedTerminalID, spaceID: self.savedSpaceID) { exit(0) }
-                }
-            }
         } else {
             window.contentView = NSHostingView(rootView: DonePillView(
                 message:     displayMessage,
                 windowTitle: tname,
                 onFocus:     { focusTerminalOnly(termID: tid, spaceID: sid) { exit(0) } }
             ))
+        }
+
+        // Cmd+Shift+A — global hotkey works regardless of which app is focused.
+        // Approval pill: allow silently (sends y, stays in current app).
+        // Done pill: focus Claude's terminal tab.
+        keyMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            guard let self = self else { return }
+            let mods = event.modifierFlags.intersection([.command, .shift, .option, .control])
+            guard event.keyCode == 0, mods == [.command, .shift] else { return }
+            if let m = self.keyMonitor { NSEvent.removeMonitor(m); self.keyMonitor = nil }
+            if self.pillIsApproval {
+                allowSilently(tty: self.savedTTY, termID: self.savedTerminalID, spaceID: self.savedSpaceID) { exit(0) }
+            } else {
+                focusTerminalOnly(termID: self.savedTerminalID, spaceID: self.savedSpaceID) { exit(0) }
+            }
         }
 
         window.orderFrontRegardless()
