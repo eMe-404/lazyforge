@@ -21,3 +21,12 @@ vim.api.nvim_create_autocmd({ "FocusLost", "BufLeave", "InsertLeave" }, {
     end
   end,
 })
+
+-- Disable spellcheck (LazyVim enables it for markdown by default)
+vim.api.nvim_create_autocmd("FileType", {
+  desc = "Disable spellcheck",
+  pattern = { "markdown", "text", "gitcommit" },
+  callback = function()
+    vim.opt_local.spell = false
+  end,
+})
