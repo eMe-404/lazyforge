@@ -19,6 +19,16 @@ map("n", "<leader>gc", function()
   end
 end, { desc = "Git Quick Commit All" })
 
+-- Search selected text in default browser (<leader>sw in visual mode)
+map("v", "<leader>sw", function()
+  vim.cmd('normal! "vy')
+  local text = vim.fn.trim(vim.fn.getreg("v"))
+  local encoded = text:gsub("[^%w%-_%.~]", function(c)
+    return string.format("%%%02X", string.byte(c))
+  end)
+  vim.fn.jobstart({ "open", "https://www.google.com/search?q=" .. encoded }, { detach = true })
+end, { desc = "Search web for selection" })
+
 -- Remap <leader>sg: replace Grep with Git Branch Picker
 pcall(vim.keymap.del, "n", "<leader>sg")
 map("n", "<leader>sg", function()
