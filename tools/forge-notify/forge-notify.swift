@@ -627,14 +627,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let tname = savedTerminalName
 
         // Route to the right pill based on message content.
-        // "waiting" in the message → approval needed (show Allow/Deny).
-        // Anything else (task done, agent finished, etc.) → done pill (click to focus).
-        let isApproval = message.lowercased().contains("waiting")
+        // "permission" in the message → approval needed (show Allow/Deny).
+        // Anything else → done pill. Normalize Claude's generic idle message to something useful.
+        let isApproval = message.lowercased().contains("permission")
+        let displayMessage: String
+        if !isApproval && message.lowercased().contains("waiting for your input") {
+            displayMessage = "Task completed"
+        } else {
+            displayMessage = message
+        }
         fnLog("appLaunched: isApproval=\(isApproval) message=\(message)")
 
         if isApproval {
             window.contentView = NSHostingView(rootView: ApprovalPillView(
-                message:       message,
+                message:       displayMessage,
                 windowTitle:   tname,
                 onAllowClick:  { allowInGhostty(tty: tty, termID: tid, spaceID: sid) { exit(0) } },
                 onAllowSilent: { allowSilently(tty: tty, termID: tid, spaceID: sid)  { exit(0) } },
@@ -650,7 +656,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         } else {
             window.contentView = NSHostingView(rootView: DonePillView(
-                message:     message,
+                message:     displayMessage,
                 windowTitle: tname,
                 onFocus:     { focusTerminalOnly(termID: tid, spaceID: sid) { exit(0) } }
             ))

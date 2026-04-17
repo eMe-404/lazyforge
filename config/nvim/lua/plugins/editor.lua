@@ -1,6 +1,21 @@
 -- Local editor plugin overrides / additions
 -- Drop new plugin specs here; each file in lua/plugins/ is auto-loaded.
 return {
+  -- Hide line numbers in Snacks zen mode
+  {
+    "folke/snacks.nvim",
+    opts = {
+      styles = {
+        zen = {
+          wo = {
+            number         = false,
+            relativenumber = false,
+          },
+        },
+      },
+    },
+  },
+
   -- Example: disable a LazyVim default plugin
   -- { "folke/flash.nvim", enabled = false },
 
@@ -55,4 +70,5 @@ return {
       },
     },
   },
+
 }
