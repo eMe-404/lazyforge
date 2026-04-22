@@ -29,7 +29,8 @@ You MUST create a task for each of these items and complete them in order:
 6. **Write design doc** — save to `docs/specs/YYYY-MM-DD-<topic>-design.md` and commit
 7. **Spec self-review** — quick inline check for placeholders, contradictions, ambiguity, scope
 8. **User reviews written spec** — ask user to review the spec file before proceeding
-9. **Transition to implementation** — switch to plan mode to create the implementation plan
+9. **Transition to plan mode** — switch to plan mode, write plan to `docs/plans/YYYY-MM-DD-<topic>-plan.md`, commit it
+10. **Transition to execution** — switch to auto/accept mode to execute the plan
 
 ## Process Flow
 
@@ -47,10 +48,12 @@ Explore project context
   → Spec self-review (fix inline)
   → User reviews spec?
       → Changes requested → revise doc + re-run spec self-review
-      → Approved → Enter plan mode  ← terminal state
+      → Approved → Enter plan mode
+          → Write plan doc + commit
+          → Switch to auto/accept mode for execution  ← terminal state
 ```
 
-**The terminal state is entering plan mode.** Do NOT invoke frontend-design, mcp-builder, or any other implementation skill. After brainstorming is complete and the spec is approved, switch to plan mode for implementation planning.
+**The terminal state is auto/accept mode.** Do NOT invoke frontend-design, mcp-builder, or any other implementation skill. After brainstorming is complete and the spec is approved: (1) enter plan mode and produce a committed plan doc, then (2) switch to auto/accept mode to execute.
 
 ## The Process
 
@@ -118,7 +121,8 @@ Wait for the user's response. If they request changes, make them and re-run the 
 
 **Implementation:**
 
-- Switch to plan mode for implementation planning
+- Switch to plan mode; write the implementation plan to `docs/plans/YYYY-MM-DD-<topic>-plan.md` and commit it
+- Once the plan is committed, switch to auto/accept mode to execute
 - Do NOT invoke any other skill at this point
 
 ## Key Principles
