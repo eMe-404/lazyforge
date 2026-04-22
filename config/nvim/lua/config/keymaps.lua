@@ -29,6 +29,32 @@ map("v", "<leader>sw", function()
   vim.fn.jobstart({ "open", "https://www.google.com/search?q=" .. encoded }, { detach = true })
 end, { desc = "Search web for selection" })
 
+-- Yank file:line reference to clipboard (for pasting into OpenCode)
+map("v", "<leader>yl", function()
+  local start_line = vim.fn.line("v")
+  local end_line = vim.fn.line(".")
+  if start_line > end_line then
+    start_line, end_line = end_line, start_line
+  end
+
+  -- Get file path relative to git root
+  local filepath = vim.fn.expand("%:p")
+  local git_root = vim.fn.trim(vim.fn.system("git rev-parse --show-toplevel"))
+  if vim.v.shell_error == 0 then
+    filepath = filepath:sub(#git_root + 2) -- strip root + trailing slash
+  else
+    filepath = vim.fn.expand("%:.") -- fallback: relative to cwd
+  end
+
+  local ref = start_line == end_line and (filepath .. ":" .. start_line)
+    or (filepath .. ":" .. start_line .. "-" .. end_line)
+
+  vim.fn.setreg("+", ref)
+  -- Exit visual mode, then notify
+  vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "n", false)
+  vim.notify("Copied: " .. ref, vim.log.levels.INFO)
+end, { desc = "Yank file:line ref to clipboard" })
+
 -- Remap <leader>sg: replace Grep with Git Branch Picker
 pcall(vim.keymap.del, "n", "<leader>sg")
 map("n", "<leader>sg", function()
