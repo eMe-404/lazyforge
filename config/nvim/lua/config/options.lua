@@ -6,3 +6,6 @@ vim.opt.scrolloff = 8           -- keep 8 lines visible around cursor
 vim.opt.colorcolumn = "100"     -- soft ruler at 100 chars
 vim.opt.autowrite = true        -- auto-save when leaving a buffer
 vim.opt.spell = false           -- no spell/grammar correction
+
+-- Disable LSP diagnostics (inline warnings/errors)
+vim.diagnostic.enable(false)
