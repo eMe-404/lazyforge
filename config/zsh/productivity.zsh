@@ -72,7 +72,14 @@ function tmux-copy() {
   fi
 }
 
-# --- Auto-attach to tmux 'main' session on every new Ghostty tab ---
+# --- Auto-attach to tmux 'main' session on every new Ghostty tab/split ---
+# Each new pane gets its own tmux window inside the 'main' session
 if command -v tmux &>/dev/null && [ -z "$TMUX" ]; then
-  tmux new-session -As main
+  if tmux has-session -t main 2>/dev/null; then
+    # Session exists — create a new window in it and attach to that window
+    exec tmux new-window -a -t main \; attach-session -t main
+  else
+    # No session yet — create it (lands in window 0)
+    exec tmux new-session -s main
+  fi
 fi
