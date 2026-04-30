@@ -49,6 +49,9 @@ success "Ghostty config linked"
 info "Linking tmux config..."
 mkdir -p "$HOME/.config/tmux"
 ln -sf "$FORGE_DIR/config/tmux/tmux.conf" "$HOME/.config/tmux/tmux.conf"
+# tmux-session-new script must be on PATH for Ghostty's command directive
+mkdir -p "$HOME/.local/bin"
+ln -sf "$FORGE_DIR/config/tmux/tmux-session-new" "$HOME/.local/bin/tmux-session-new"
 success "tmux config linked"
 
 # --- TPM (Tmux Plugin Manager) ---

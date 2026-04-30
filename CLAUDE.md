@@ -29,6 +29,8 @@ brew bundle install
 | Repo path | Symlinked to |
 |-----------|-------------|
 | `config/ghostty/config` | `~/.config/ghostty/config` |
+| `config/tmux/tmux.conf` | `~/.config/tmux/tmux.conf` |
+| `config/tmux/tmux-session-new` | `~/.local/bin/tmux-session-new` |
 | `config/nvim/` | `~/.config/nvim` |
 | `config/navi/cheats/lazyforge.cheat` | `~/.local/share/navi/cheats/lazyforge/lazyforge.cheat` |
 | `config/navi/config.yaml` | `~/.config/navi/config.yaml` |
@@ -44,6 +46,7 @@ Brewfile          → defines all tool dependencies
 install.sh        → idempotent setup: installs tools, creates symlinks, injects shell config
 config/
   ghostty/        → terminal emulator (theme: Catppuccin Mocha, font: JetBrainsMono Nerd Font)
+  tmux/           → multiplexer config + auto-session script (every Ghostty tab = independent tmux session)
   zsh/            → shell config: aliases, plugin init (starship, fzf, atuin, zoxide)
   nvim/           → LazyVim-based Neovim (entry: init.lua → lua/config/lazy.lua)
   navi/           → interactive cheatsheets (config.yaml + cheats/*.cheat)
@@ -104,3 +107,4 @@ When recommending tools to add to this forge:
 | `ccc` | `claude --continue` |
 | `fif` | ripgrep + fzf with bat preview |
 | `cheat` / `?` | `navi` cheatsheet browser |
+| `tls` | `tmux list-sessions` |

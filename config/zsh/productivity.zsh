@@ -2,6 +2,9 @@
 # Source this from your ~/.zshrc before the SDKMAN block:
 #   source ~/path/to/lazyforge/config/zsh/productivity.zsh
 
+# --- PATH: lazyforge scripts ---
+export PATH="$HOME/.local/bin:$PATH"
+
 # --- zsh-autosuggestions & zsh-syntax-highlighting ---
 source $(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 source $(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
@@ -63,26 +66,5 @@ alias '?'='navi --query'                     # ? docker  →  search navi for do
 # --- git delta ---
 export GIT_PAGER="delta"
 
-# --- tmux copy mode (triggered by Ghostty cmd+shift+c) ---
-# If already in tmux: enter copy mode immediately
-# If not in tmux: attach to (or create) main session, then enter copy mode
-function tmux-copy() {
-  if [ -n "$TMUX" ]; then
-    tmux copy-mode
-  elif tmux has-session -t main 2>/dev/null; then
-    tmux attach-session -t main \; copy-mode
-  else
-    tmux new-session -s main \; copy-mode
-  fi
-}
-
-# --- tmux: attach or create 'main' session (run manually: tmux-main) ---
-# Use Ghostty tabs/splits for independent panes.
-# Use tmux explicitly when you need session persistence or remote work.
-function tmux-main() {
-  if tmux has-session -t main 2>/dev/null; then
-    exec tmux attach-session -t main
-  else
-    exec tmux new-session -s main
-  fi
-}
+# --- tmux session list (quick overview) ---
+alias tls='tmux list-sessions'

@@ -4,6 +4,10 @@ theme = Catppuccin Mocha
 shell-integration = zsh
 macos-option-as-alt = true
 
+# --- tmux auto-session ---
+# Every new tab/split/window gets its own independent tmux session
+command = ~/.local/bin/tmux-session-new
+
 # --- Window appearance ---
 macos-titlebar-style = hidden
 window-padding-x = 10
@@ -17,5 +21,5 @@ keybind = cmd+grave_accent=toggle_quick_terminal
 keybind = cmd+shift+comma=reload_config
 # cmd+shift+r → tmux: open navi in a popup (works from any context)
 keybind = cmd+shift+r=text:\x02n
-# cmd+shift+c → enter tmux copy mode (starts tmux if not running)
-keybind = cmd+shift+c=text:tmux-copy\n
+# cmd+shift+c → enter tmux copy mode (sends prefix + [ directly to tmux)
+keybind = cmd+shift+c=text:\x02[

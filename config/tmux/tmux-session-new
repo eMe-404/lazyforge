@@ -1,0 +1,20 @@
+#!/bin/zsh
+# tmux-session-new — launch an independent tmux session per Ghostty tab/split
+# Session name is based on the current directory (e.g. "lazyforge", "lazyforge-2")
+
+# Ghostty launches with a minimal PATH; ensure Homebrew binaries are available
+eval "$(/opt/homebrew/bin/brew shellenv)"
+
+session_base="${PWD##*/}"
+# Fallback if in root or home
+[ -z "$session_base" ] && session_base="shell"
+
+# Find a unique session name
+session_name="$session_base"
+counter=2
+while tmux has-session -t "=$session_name" 2>/dev/null; do
+  session_name="${session_base}-${counter}"
+  ((counter++))
+done
+
+exec tmux new-session -s "$session_name"
