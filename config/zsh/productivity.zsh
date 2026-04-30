@@ -64,11 +64,15 @@ alias '?'='navi --query'                     # ? docker  →  search navi for do
 export GIT_PAGER="delta"
 
 # --- tmux copy mode (triggered by Ghostty cmd+shift+c) ---
+# If already in tmux: enter copy mode immediately
+# If not in tmux: attach to (or create) main session, then enter copy mode
 function tmux-copy() {
-  if tmux info &>/dev/null; then
+  if [ -n "$TMUX" ]; then
     tmux copy-mode
+  elif tmux has-session -t main 2>/dev/null; then
+    tmux attach-session -t main \; copy-mode
   else
-    tmux new-session
+    tmux new-session -s main \; copy-mode
   fi
 }
 

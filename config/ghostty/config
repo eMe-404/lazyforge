@@ -17,6 +17,5 @@ keybind = cmd+grave_accent=toggle_quick_terminal
 keybind = cmd+shift+comma=reload_config
 # cmd+shift+r → tmux: open navi in a popup (works from any context)
 keybind = cmd+shift+r=text:\x02n
-# cmd+shift+c → tmux: send ctrl+b + [ to enter Vi copy mode
-# Works from any context (shell, TUI, nvim) as long as tmux is running
-keybind = cmd+shift+c=text:\x02[
+# cmd+shift+c → enter tmux copy mode (starts tmux if not running)
+keybind = cmd+shift+c=text:tmux-copy\n
