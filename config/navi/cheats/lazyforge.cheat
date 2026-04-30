@@ -236,6 +236,56 @@ broot
 broot <directory>
 
 
+% tmux, multiplexer, copy-mode, sessions
+
+# [tmux] Start a new tmux session
+tmux
+
+# [tmux] Start a named session
+tmux new -s <session_name>
+
+# [tmux] List all sessions
+tmux ls
+
+# [tmux] Attach to a session
+tmux attach -t <session_name>
+
+# [tmux] Reload tmux config without restart
+tmux source ~/.config/tmux/tmux.conf
+
+# [tmux] Detach — keep session running (prefix + d)
+# Press: Ctrl+b → d
+
+# [tmux] New window (prefix + c)
+# Press: Ctrl+b → c
+
+# [tmux] Split pane horizontally (prefix + %)
+# Press: Ctrl+b → %
+
+# [tmux] Split pane vertically (prefix + ")
+# Press: Ctrl+b → "
+
+# [tmux → copy] Enter Vi copy mode (from Ghostty: cmd+shift+c)
+# Press: cmd+shift+c  — OR —  Ctrl+b → [
+
+# [tmux → copy] Start selection (in copy mode)
+# Press: v
+
+# [tmux → copy] Select whole line (in copy mode)
+# Press: V
+
+# [tmux → copy] Yank selection to clipboard (in copy mode)
+# Press: y  — copies to macOS clipboard via pbcopy
+
+# [tmux → copy] Exit copy mode
+# Press: q  or  Escape
+
+# [tmux → copy] Navigate in copy mode
+# Press: h j k l  (Vi motion)  |  Ctrl+u / Ctrl+d  (half-page)
+
+$ session_name: tmux ls 2>/dev/null | awk -F: '{print $1}'
+
+
 % zellij, multiplexer, sessions
 
 # [zellij] Start a new session

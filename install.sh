@@ -45,6 +45,12 @@ mkdir -p "$HOME/.config/ghostty"
 ln -sf "$FORGE_DIR/config/ghostty/config" "$HOME/.config/ghostty/config"
 success "Ghostty config linked"
 
+# --- tmux config ---
+info "Linking tmux config..."
+mkdir -p "$HOME/.config/tmux"
+ln -sf "$FORGE_DIR/config/tmux/tmux.conf" "$HOME/.config/tmux/tmux.conf"
+success "tmux config linked"
+
 # --- navi config + cheat sheets ---
 info "Linking navi config and cheat sheets..."
 NAVI_CHEATS_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/navi/cheats"

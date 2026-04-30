@@ -62,3 +62,12 @@ alias '?'='navi --query'                     # ? docker  →  search navi for do
 
 # --- git delta ---
 export GIT_PAGER="delta"
+
+# --- tmux copy mode (triggered by Ghostty cmd+shift+c) ---
+function tmux-copy() {
+  if tmux info &>/dev/null; then
+    tmux copy-mode
+  else
+    tmux new-session
+  fi
+}

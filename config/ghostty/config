@@ -16,3 +16,6 @@ unfocused-split-opacity = 0.7
 keybind = cmd+grave_accent=toggle_quick_terminal
 keybind = cmd+shift+r=text:navi\n
 keybind = cmd+shift+comma=reload_config
+# cmd+shift+c → tmux: send ctrl+b + [ to enter Vi copy mode
+# Works from any context (shell, TUI, nvim) as long as tmux is running
+keybind = cmd+shift+c=text:\x02[

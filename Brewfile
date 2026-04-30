@@ -52,6 +52,7 @@ brew "lazydocker"    # TUI for Docker
 
 # --- Terminal Multiplexer ---
 brew "zellij"        # modern terminal multiplexer
+brew "tmux"          # battle-tested multiplexer with Vi copy mode
 
 # --- Productivity ---
 brew "just"          # modern Makefile replacement
