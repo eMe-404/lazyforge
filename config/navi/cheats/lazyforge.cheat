@@ -241,6 +241,9 @@ broot <directory>
 # [tmux] Start a new tmux session
 tmux
 
+# [tmux] New Ghostty tab auto-attaches to 'main' session (no command needed)
+# Opening a new tab always lands in tmux 'main' — created if it doesn't exist
+
 # [tmux] Start a named session
 tmux new -s <session_name>
 
