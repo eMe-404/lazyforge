@@ -63,5 +63,15 @@ end, { desc = "Search Git Branches" })
 
 -- Git worktree picker (<leader>gw)
 map("n", "<leader>gw", function()
-  Snacks.picker.git_worktrees()
+  local worktrees = vim.fn.systemlist("git worktree list --porcelain | grep '^worktree ' | awk '{print $2}'")
+  if vim.v.shell_error ~= 0 or #worktrees == 0 then
+    vim.notify("No git worktrees found", vim.log.levels.WARN)
+    return
+  end
+  Snacks.picker.select(worktrees, { prompt = "Git Worktrees" }, function(selected)
+    if selected then
+      vim.fn.chdir(selected)
+      Snacks.picker.files({ cwd = selected })
+    end
+  end)
 end, { desc = "Git Worktrees" })
