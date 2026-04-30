@@ -253,6 +253,15 @@ tmux attach -t <session_name>
 # [tmux] Reload tmux config without restart
 tmux source ~/.config/tmux/tmux.conf
 
+# [tmux → resurrect] Save session to survive reboot (prefix + ctrl+s)
+# Press: Ctrl+b → Ctrl+s
+
+# [tmux → resurrect] Restore session after reboot (prefix + ctrl+r)
+# Press: Ctrl+b → Ctrl+r
+
+# [tmux → resurrect] Install TPM plugins after fresh install (prefix + I)
+# Press: Ctrl+b → I  (capital i)
+
 # [tmux] Detach — keep session running (prefix + d)
 # Press: Ctrl+b → d
 
@@ -358,6 +367,12 @@ nvim <file>
 
 # [nv →  Space gg] Open lazygit inside nvim
 # Inside nvim: press <Space>gg
+
+# [nv →  Space sg] Git branch picker (fuzzy search + checkout)
+# Inside nvim: press <Space>sg
+
+# [nv →  Space gw] Git worktree picker (switch worktrees)
+# Inside nvim: press <Space>gw
 
 # [nv →  Space e] Toggle file tree (inside nvim)
 # Inside nvim: press <Space>e

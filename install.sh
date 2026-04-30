@@ -51,6 +51,17 @@ mkdir -p "$HOME/.config/tmux"
 ln -sf "$FORGE_DIR/config/tmux/tmux.conf" "$HOME/.config/tmux/tmux.conf"
 success "tmux config linked"
 
+# --- TPM (Tmux Plugin Manager) ---
+info "Checking TPM..."
+TPM_DIR="$HOME/.tmux/plugins/tpm"
+if [ ! -d "$TPM_DIR" ]; then
+  info "Installing TPM..."
+  git clone https://github.com/tmux-plugins/tpm "$TPM_DIR"
+  success "TPM installed — run: tmux source ~/.config/tmux/tmux.conf && prefix+I to install plugins"
+else
+  info "TPM already installed, skipping"
+fi
+
 # --- navi config + cheat sheets ---
 info "Linking navi config and cheat sheets..."
 NAVI_CHEATS_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/navi/cheats"

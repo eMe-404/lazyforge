@@ -71,3 +71,8 @@ function tmux-copy() {
     tmux new-session
   fi
 }
+
+# --- Auto-attach to tmux 'main' session on every new Ghostty tab ---
+if command -v tmux &>/dev/null && [ -z "$TMUX" ]; then
+  tmux new-session -As main
+fi

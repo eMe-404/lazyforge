@@ -60,3 +60,8 @@ pcall(vim.keymap.del, "n", "<leader>sg")
 map("n", "<leader>sg", function()
   Snacks.picker.git_branches()
 end, { desc = "Search Git Branches" })
+
+-- Git worktree picker (<leader>gw)
+map("n", "<leader>gw", function()
+  Snacks.picker.git_worktrees()
+end, { desc = "Git Worktrees" })
