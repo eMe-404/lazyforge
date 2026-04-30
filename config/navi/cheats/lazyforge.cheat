@@ -350,7 +350,7 @@ glow <file>
 # [glow] Browse all Markdown files in current directory
 glow .
 
-# [navi] Open cheatsheet browser
+# [navi] Open cheatsheet browser (from Ghostty: cmd+shift+r — works from any context)
 navi
 
 # [? / cheat] Search navi for a topic
